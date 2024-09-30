@@ -1,0 +1,123 @@
+<!-- /public/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="../src/css/style.css">
+</head>
+<body>
+    <div class="listings-container">
+        <!-- Gallery items will be dynamically inserted here -->
+    </div>
+
+    <div class="featured-listings">
+        <h2>Featured Listings</h2>
+        <div id="listings-container">
+            <!-- Listings will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { getAllDocuments } from '.../js/database.js';
+
+        // Function to load featured listings
+        const loadFeaturedListings = async () => {
+            const listings = await getAllDocuments('Listings');
+            const listingsContainer = document.getElementById('listings-container');
+
+            listings.forEach(listing => {
+                const listingElement = document.createElement('div');
+                listingElement.className = 'listing-item';
+                listingElement.innerHTML = `
+                    <h3>${listing.title}</h3>
+                    <p>${listing.description}</p>
+                    <p><strong>Price:</strong> $${listing.price}</p>
+                `;
+                listingsContainer.appendChild(listingElement);
+            });
+        };
+
+        // Load listings on page load
+        window.onload = loadFeaturedListings;
+    </script>
+     <nav>
+        <div id="auth-status">
+            <!-- User status and logout button will be dynamically inserted here -->
+        </div>
+    </nav>
+
+    <h1>Welcome to the Platform</h1>
+
+    <script type="module">
+        import { logoutUser, onAuthChange } from '../src/js/auth.js';
+
+        const authStatusDiv = document.getElementById('auth-status');
+
+        // Function to display user status and logout button
+        const displayAuthStatus = (user) => {
+            authStatusDiv.innerHTML = ''; // Clear the current content
+
+            if (user) {
+                const logoutButton = document.createElement('button');
+                logoutButton.innerText = 'Logout';
+                logoutButton.addEventListener('click', async () => {
+                    await logoutUser();
+                    window.location.reload(); // Reload the page after logout
+                });
+
+                const welcomeMessage = document.createElement('span');
+                welcomeMessage.innerText = `Welcome, ${user.email}`;
+
+                authStatusDiv.appendChild(welcomeMessage);
+                authStatusDiv.appendChild(logoutButton);
+            } else {
+                authStatusDiv.innerHTML = '<a href="login.html">Login</a> | <a href="signup.html">Sign Up</a>';
+            }
+        };
+
+        // Listen to authentication state changes
+        onAuthChange(displayAuthStatus);
+    </script>
+    <nav>
+        <div id="auth-status">
+            <!-- User status and logout button will be dynamically inserted here -->
+        </div>
+    </nav>
+
+    <h1>Featured Listings</h1>
+    <div id="featured-listings" class="featured-listings">
+        <!-- Listings will be dynamically inserted here -->
+    </div>
+
+    <script type="module">
+        import { getDocuments } from '.../js/firestore.js';
+
+        const featuredListingsDiv = document.getElementById('featured-listings');
+
+        // Function to display featured listings
+        const displayFeaturedListings = (listings) => {
+            listings.forEach(listing => {
+                const listingElement = document.createElement('div');
+                listingElement.className = 'listing-item';
+                listingElement.innerHTML = `
+                    <h2>${listing.title}</h2>
+                    <p>${listing.description}</p>
+                    <p><strong>Price:</strong> ${listing.price}</p>
+                `;
+                featuredListingsDiv.appendChild(listingElement);
+            });
+        };
+
+        // Fetch and display featured listings
+        const fetchFeaturedListings = async () => {
+            const listings = await getDocuments('Listings', [['featured', '==', true]]);
+            displayFeaturedListings(listings);
+        };
+
+        fetchFeaturedListings();
+    </script>
+</body>
+</html>

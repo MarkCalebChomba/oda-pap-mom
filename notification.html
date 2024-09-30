@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications - Chat History</title>
+  <link rel="stylesheet" href="notifications.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+</head>
+<body>
+<header>
+  <div class="top-bar"></div>
+    <div class="logo-container">
+      <img src="images/logo.jpg" alt="Oda Pap Logo" class="logo">
+      <span class="logo-text">Oda Pap</span>
+    </div>
+  </div>
+    <div class="border-line"></div>
+    <div class="nav-bar" id="nav-bar">
+      <button class="home-button" onclick="location.href='index.html'">
+        <i class="fas fa-home"></i>
+      </button>
+      <button class="home-button" onclick="location.href='electronics.html'">
+        <i class="fas fa-laptop"></i>
+      </button>
+      <button class="home-button" onclick="location.href='fashion.html'">
+        <i class="fas fa-tshirt"></i>
+      </button>
+      <button class="home-button" onclick="location.href='furniture.html'">
+        <i class="fas fa-couch"></i>
+      </button>
+      <button class="home-button" onclick="location.href='notification.html'">
+        <i class="fas fa-bell" id="notification-icon"></i>
+      </button>
+      <button class="home-button" onclick="location.href='cart.html'">
+        <i class="fas fa-shopping-cart" id="cart-icon"></i>
+      </button>
+      <button class="home-button" onclick="location.href='profile.html'">
+        <i class="fas fa-user-circle"></i>
+      </button>
+      <!-- -->
+    </div>
+</header>
+  <div class="notification-container">
+    <div class="notification-header">
+      <h1>Chats</h1>
+    </div>
+
+    <!-- Chat history list resembling WhatsApp chat list -->
+    <ul id="notification-list" class="notification-list">
+      <!-- Chat items will be dynamically populated here -->
+    </ul>
+  </div>
+
+  <script type="module">
+    import { app } from "./js/firebase.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+    const storage = getStorage(app);
+
+    const notificationList = document.getElementById("notification-list");
+
+    // Function to display chat history item
+    async function displayChat(chatData) {
+      const chatItem = document.createElement("li");
+      chatItem.classList.add("notification-item");
+
+      // Get profile picture of the seller/buyer
+      let profilePicUrl = "images/profile-placeholder.png";
+      if (chatData.profilePic) {
+        try {
+          profilePicUrl = await getDownloadURL(ref(storage, chatData.profilePic));
+        } catch (error) {
+          console.error("Error fetching profile picture: ", error);
+        }
+      }
+
+      chatItem.innerHTML = `
+        <div class="chat-item">
+          <div class="profile-picture">
+            <img src="${profilePicUrl}" alt="Profile Picture" class="profile-img">
+          </div>
+          <div class="chat-details">
+            <p class="chat-name">${chatData.sellerName}</p>
+            <p class="chat-message">${chatData.lastMessage}</p>
+          </div>
+          <div class="chat-time">
+            <small>${chatData.timestamp}</small>
+          </div>
+        </div>
+      `;
+
+      // Handle redirection to chat page
+      chatItem.onclick = function () {
+        window.location.href = `chat.html?sellerId=${chatData.sellerId}`;
+      };
+
+      notificationList.appendChild(chatItem);
+    }
+
+    // Listen for authentication changes
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        loadChats(user.uid);
+      } else {
+        alert("Please log in to view your chats.");
+        window.location.href = "login.html";
+      }
+    });
+
+    // Load chat history for the user
+    function loadChats(userId) {
+      const chatRef = collection(firestore, "Chats");
+      const chatQuery = query(chatRef, where("buyerId", "==", userId));
+
+      onSnapshot(chatQuery, (snapshot) => {
+        notificationList.innerHTML = ""; // Clear previous chats
+        snapshot.forEach((doc) => {
+          const chatData = doc.data();
+          displayChat({
+            sellerId: chatData.sellerId,
+            sellerName: chatData.sellerName || "Unknown Seller",
+            profilePic: chatData.profilePic || null,
+            lastMessage: chatData.text || "No messages yet.",
+            timestamp: new Date(chatData.timestamp.seconds * 1000).toLocaleTimeString() || "N/A"
+          });
+        });
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!-- /public/admin.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Send Broadcast Notification</title>
+    <link rel="stylesheet" href="../src/css/style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h2>Send Broadcast Notification</h2>
+        <form id="broadcast-form">
+            <textarea id="broadcast-message-input" placeholder="Enter your message" required></textarea>
+            <button type="submit" id="broadcast-send-button">Send</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { sendBroadcastNotification } from '../src/js/notifications.js';
+
+        const broadcastForm = document.getElementById('broadcast-form');
+        broadcastForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = document.getElementById('broadcast-message-input').value;
+            await sendBroadcastNotification(message);
+            alert('Broadcast notification sent');
+            broadcastForm.reset();
+        });
+    </script>
+</body>
+</html>

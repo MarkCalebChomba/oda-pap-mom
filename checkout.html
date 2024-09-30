@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js"></script>
+    <script src="js/firebase.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        h1 { color: #333; }
+        .checkout-form { background: #f4f4f4; padding: 20px; border-radius: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #333; color: #fff; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #555; }
+        #orderSummary { margin-top: 20px; }
+        #loadingOverlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 1000; 
+        }
+        #loadingOverlay div { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 5px; 
+            text-align: center; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Checkout</h1>
+        <div id="orderSummary"></div>
+        <form id="checkoutForm" class="checkout-form">
+            <div class="form-group">
+                <label for="shippingFee">Shipping Fee (Kes):</label>
+                <input type="number" id="shippingFee" name="shippingFee" required min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">M-Pesa Phone Number:</label>
+                <input type="text" id="phoneNumber" name="phoneNumber" required pattern="254[0-9]{9}" title="Please enter a valid phone number starting with 254">
+            </div>
+            <button type="submit">Pay with M-Pesa</button>
+        </form>
+    </div>
+
+    <div id="loadingOverlay">
+        <div>
+            <p>Processing your payment...</p>
+            <p>Please check your phone for the M-Pesa prompt.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+        import { app } from './js/firebase.js';
+
+        const auth = getAuth(app);
+        const firestore = getFirestore(app);
+
+        const orderSummaryElement = document.getElementById('orderSummary');
+        const checkoutForm = document.getElementById('checkoutForm');
+        const shippingFeeInput = document.getElementById('shippingFee');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        let cartTotal = 0;
+        let cartItems = [];
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadCartItems(user);
+            } else {
+                alert('You must be logged in to checkout.');
+                window.location.href = 'login.html';
+            }
+        });
+
+        async function loadCartItems(user) {
+            try {
+                const cartItemsSnapshot = await getDocs(collection(firestore, `users/${user.uid}/cart`));
+                let itemsHtml = '<h2>Order Summary</h2><ul>';
+
+                cartItemsSnapshot.forEach(doc => {
+                    const item = doc.data();
+                    cartTotal += item.price;
+                    cartItems.push(item);
+                    itemsHtml += `<li>${item.name} - Kes${item.price.toFixed(2)}</li>`;
+                });
+
+                itemsHtml += '</ul>';
+                itemsHtml += `<p><strong>Subtotal: Kes${cartTotal.toFixed(2)}</strong></p>`;
+                orderSummaryElement.innerHTML = itemsHtml;
+            } catch (error) {
+                console.error('Error loading cart items:', error);
+                orderSummaryElement.innerHTML = '<p>Error loading cart items. Please try again.</p>';
+            }
+        }
+
+        checkoutForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) {
+                alert('You must be logged in to checkout.');
+                return;
+            }
+
+            const shippingFee = parseFloat(shippingFeeInput.value);
+            const totalAmount = cartTotal + shippingFee;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                // Initiate M-Pesa payment
+                const response = await fetch('/api/initiate-mpesa-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phoneNumber,
+                        amount: totalAmount,
+                        accountNumber: '120000', // Your account number
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to initiate payment');
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Payment initiated successfully, now we need to check the status
+                    const transactionId = result.transactionId;
+                    const paymentStatus = await checkPaymentStatus(transactionId);
+
+                    if (paymentStatus === 'completed') {
+                        // Payment successful, store transaction in Firebase
+                        await addDoc(collection(firestore, 'transactions'), {
+                            userId: user.uid,
+                            amount: totalAmount,
+                            shippingFee: shippingFee,
+                            phoneNumber: phoneNumber,
+                            timestamp: new Date(),
+                            status: 'completed',
+                            transactionId: transactionId,
+                            items: cartItems
+                        });
+
+                        alert('Payment successful! Your order has been placed.');
+                        await clearCart(user);
+                        window.location.href = 'order-confirmation.html';
+                    } else {
+                        alert('Payment was not completed. Please try again.');
+                    }
+                } else {
+                    alert('Failed to initiate payment. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error processing payment:', error);
+                alert('An error occurred while processing your payment. Please try again.');
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        async function checkPaymentStatus(transactionId) {
+            // In a real implementation, this would make periodic calls to your server
+            // to check the payment status until it's complete or times out
+            return new Promise((resolve) => {
+                let attempts = 0;
+                const maxAttempts = 30;
+                const interval = setInterval(async () => {
+                    attempts++;
+                    try {
+                        const response = await fetch(`/api/check-payment-status?transactionId=${transactionId}`);
+                        const result = await response.json();
+                        if (result.status === 'completed') {
+                            clearInterval(interval);
+                            resolve('completed');
+                        } else if (attempts >= maxAttempts) {
+                            clearInterval(interval);
+                            resolve('timeout');
+                        }
+                    } catch (error) {
+                        console.error('Error checking payment status:', error);
+                        if (attempts >= maxAttempts) {
+                            clearInterval(interval);
+                            resolve('error');
+                        }
+                    }
+                }, 5000); // Check every 5 seconds
+            });
+        }
+
+        async function clearCart(user) {
+            const cartRef = collection(firestore, `users/${user.uid}/cart`);
+            const cartSnapshot = await getDocs(cartRef);
+            const deletePromises = cartSnapshot.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+        }
+    </script>
+</body>
+</html>
