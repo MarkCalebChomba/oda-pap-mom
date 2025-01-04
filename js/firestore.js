@@ -1,6 +1,6 @@
 // /src/js/firestore.js
 import { db } from './firebase.js';
-import { collection, addDoc, getDocs, getDoc, setDoc, updateDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { collection, addDoc, getDocs, getDoc, setDoc, updateDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 // Function to add a new document to a collection
 const addDocument = async (collectionName, data) => {

@@ -106,7 +106,7 @@
                 window.location.href = 'index.html'; // Redirect to main page after successful login
             } catch (error) {
                 // Display the error message if login fails
-                alert('Login failed: ' + error.message);
+                showNotification('Login failed: ' + error.message);
             }
         });
     </script>

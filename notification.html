@@ -55,10 +55,10 @@
 
   <script type="module">
     import { app } from "./js/firebase.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-    import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
-
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
+    import { showNotification } from './notifications.js';
     const auth = getAuth(app);
     const firestore = getFirestore(app);
     const storage = getStorage(app);
@@ -108,7 +108,7 @@
       if (user) {
         loadChats(user.uid);
       } else {
-        alert("Please log in to view your chats.");
+        showNotification("Please log in to view your chats.");
         window.location.href = "login.html";
       }
     });

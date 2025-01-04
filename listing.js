@@ -1,7 +1,8 @@
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
 import { app } from "./js/firebase.js";
+import { showNotification } from './notifications.js';
 
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
               document.getElementById("profile-pic").src = userData.profilePicUrl|| "Unknown";
               document.getElementById("seller-name").textContent = userData.name || "Unknown";
               document.getElementById("seller-email").textContent = userData.email || "Unknown";
-              document.getElementById("seller-location").textContent = userData.location || "Location Unknown";
+              
           } else {
               document.getElementById("profile-incomplete-message").style.display = 'block';
           }
@@ -26,6 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
           window.location.href = 'login.html'; // Redirect if no user is logged in
       }
   });
+});
+
+getDocumentById("Users", userId)
+.then((userData) => {
+document.getElementById("seller-location").textContent = userData.location || "Location Unknown";
 });
 
 // Function to display listings for the authenticated user
@@ -85,7 +91,7 @@ async function loadEditForm(listingId) {
         document.getElementById('submit-button').innerText = 'Update Item';
         document.getElementById('submit-button').dataset.id = listingId;
     } else {
-        alert("Listing not found!");
+        showNotification("Listing not found!");
     }
 }
 
@@ -95,7 +101,7 @@ document.getElementById('item-listing-form').addEventListener('submit', async (e
 
     const user = auth.currentUser;
     if (!user) {
-        alert("You need to be logged in to list an item.");
+        showNotification("You need to be logged in to list an item.");
         return;
     }
 
@@ -136,7 +142,7 @@ document.getElementById('item-listing-form').addEventListener('submit', async (e
             description: description,
             imageUrls: imageUrls.length ? imageUrls : undefined // Update only if media exists
         });
-        alert("Item updated successfully!");
+        showNotification("Item updated successfully!");
     } else {
         // Add new listing
         await addDoc(collection(db, "Listings"), {
@@ -149,7 +155,7 @@ document.getElementById('item-listing-form').addEventListener('submit', async (e
             imageUrls: imageUrls,
             createdAt: new Date().toISOString()
         });
-        alert("Item listed successfully!");
+        showNotification("Item listed successfully!");
     }
 
     event.target.reset();
@@ -161,7 +167,7 @@ document.getElementById('item-listing-form').addEventListener('submit', async (e
 async function deleteListing(listingId) {
     if (confirm("Are you sure you want to delete this item?")) {
         await deleteDoc(doc(db, "Listings", listingId));
-        alert("Item deleted successfully!");
+        showNotification("Item deleted successfully!");
         loadUserListings(); // Reload listings after delete
     }
 }
@@ -176,3 +182,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+ 

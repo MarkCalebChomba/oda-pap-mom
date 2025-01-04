@@ -198,7 +198,7 @@
   import { getDocumentById, updateDocumentById } from "./js/firestore.js";
 import { auth } from "./js/firebase.js";
 import { onAuthChange } from "./js/auth.js";
-
+import { showNotification } from './notifications.js';
 const profilePic = document.getElementById('profile-pic');
 const profilePicInput = document.getElementById('profile-pic-input');
 const changePicButton = document.getElementById('change-pic-button');
@@ -295,7 +295,7 @@ saveLocationButton.addEventListener("click", () => {
     specificLocation: newSpecificLocation,
   })
     .then(() => {
-      alert("Location updated successfully!");
+      showNotification("Location updated successfully!");
     })
     .catch((error) => {
       console.error("Error updating location: ", error);

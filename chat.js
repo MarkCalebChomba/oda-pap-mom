@@ -1,6 +1,6 @@
 import { app } from "./js/firebase.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, query, where, onSnapshot, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, collection, query, where, onSnapshot, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 // Initialize Firebase services
 const auth = getAuth(app);
@@ -44,7 +44,7 @@ auth.onAuthStateChanged((user) => {
       }
     });
   } else {
-    alert("Please log in to chat with the seller.");
+    showNotification("Please log in to chat with the seller.");
     window.location.href = "login.html";
   }
 });

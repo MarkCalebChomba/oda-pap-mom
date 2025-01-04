@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - Oda Pap</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="product.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="top-bar">
+            <div class="logo-container">
+                <img src="images/logo.jpg" alt="Oda Pap Logo" class="logo">
+                <span class="logo-text">Oda Pap</span>
+            </div>
+            <button onclick="window.history.back()" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+    </header>
+
+    <main class="product-page">
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="error-message"></div>
+
+        <!-- Product Container -->
+        <div class="product-container" id="productContent">
+            <!-- Left Column: Image Gallery -->
+            <div class="product-gallery">
+                <div class="main-image-container">
+                    <button class="nav-btn prev" id="prevBtn">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <img id="mainImage" src="" alt="Product Image">
+                    <button class="nav-btn next" id="nextBtn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <div class="image-counter">
+                        <span id="currentImageIndex">1</span>/<span id="totalImages">5</span>
+                    </div>
+                </div>
+                <div class="thumbnail-container" id="thumbnailContainer"></div>
+            </div>
+
+            <!-- Right Column: Product Details -->
+            <div class="product-details">
+                <!-- Product Header -->
+                <div class="product-header">
+                    <div class="product-title">
+                        <h1 id="productName"></h1>
+                        <div class="product-meta">
+                            <span id="productDate"></span>
+                            <span id="productViews">
+                                <i class="fas fa-eye"></i> <span id="viewCount">0</span> views
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Section -->
+                <div class="price-section">
+                    <div class="current-price">
+                        <span class="label">Price:</span>
+                        <span id="productPrice" class="amount"></span>
+                    </div>
+                    <div class="initial-price" id="initialPriceContainer">
+                        <span class="label">Initial Price:</span>
+                        <span id="initialPrice" class="amount strikethrough"></span>
+                        <span id="discountBadge" class="discount-badge"></span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button id="buyNowBtn" class="primary-btn">
+                        <i class="fas fa-bolt"></i> Buy Now
+                    </button>
+                    <button id="addToCartBtn" class="secondary-btn">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                    <button id="wishlistBtn" class="icon-btn">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    <button id="shareBtn" class="icon-btn">
+                        <i class="fas fa-share"></i>
+                    </button>
+                </div>
+
+                <!-- Product Info -->
+                <div class="product-info">
+                    <div class="info-item">
+                        <i class="fas fa-tag"></i>
+                        <span class="label">Category:</span>
+                        <span id="productCategory"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-star"></i>
+                        <span class="label">Condition:</span>
+                        <span id="productCondition"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <span class="label">Age:</span>
+                        <span id="productAge"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-box"></i>
+                        <span class="label">Quantity Available:</span>
+                        <span id="productQuantity"></span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="label">Location:</span>
+                        <span id="productLocation"></span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="description-section">
+                    <h3>Description</h3>
+                    <p id="productDescription"></p>
+                </div>
+
+                <!-- Seller Information -->
+                <div class="seller-section">
+                    <h3>Seller Information</h3>
+                    <div class="seller-info">
+                        <img id="sellerImage" src="images/default-profile.png" alt="Seller">
+                        <div class="seller-details">
+                            <h4 id="sellerName"></h4>
+                            <p id="sellerLocation"></p>
+                            <div class="seller-stats">
+                                <span id="sellerRating">
+                                    <i class="fas fa-star"></i> 4.5
+                                </span>
+                                <span id="sellerListings">
+                                    <i class="fas fa-box"></i> Items Listed
+                                </span>
+                            </div>
+                        </div>
+                        <button id="messageSellerBtn" class="message-btn">
+                            <i class="fas fa-comment"></i> Message Seller
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Safety Tips -->
+                <div class="safety-tips">
+                    <h3><i class="fas fa-shield-alt"></i> Safety Tips</h3>
+                    <ul>
+                        <li>Meet in a safe public location</li>
+                        <li>Check the item before paying</li>
+                        <li>Pay only after inspection</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Similar Products -->
+        <section class="similar-products">
+            <h2>Similar Products</h2>
+            <div id="similarProductsContainer" class="products-grid">
+                <!-- Similar products will be dynamically added here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <h3>Share this item</h3>
+            <div class="share-buttons">
+                <button class="share-btn whatsapp">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button class="share-btn telegram">
+                    <i class="fab fa-telegram"></i> Telegram
+                </button>
+                <button class="share-btn twitter">
+                    <i class="fab fa-twitter"></i> Twitter
+                </button>
+                <button class="share-btn copy">
+                    <i class="fas fa-copy"></i> Copy Link
+                </button>
+            </div>
+            <button class="close-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script type="module" src="product.js"></script>
+</body>
+</html>

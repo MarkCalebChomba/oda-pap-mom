@@ -1,5 +1,5 @@
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFirestore, collection, doc, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 import { app } from './js/firebase.js';
 
 // Initialize Firebase services using the app instance
@@ -14,14 +14,13 @@ const checkoutButton = document.getElementById('checkout-button');
 // Function to load cart items from Firestore
 const loadCartItems = async (user) => {
     if (!user) {
-        alert('Please log in to view your cart.');
+        showNotification('Please log in to view your cart.');
         return;
     }
-
     try {
         const cartItemsSnapshot = await getDocs(collection(firestore, `users/${user.uid}/cart`));
         let total = 0;
-        cartItemsContainer.innerHTML = ''; // Clear previous items
+        cartItemsContainer.innerHTML = '';
 
         if (cartItemsSnapshot.empty) {
             cartItemsContainer.innerHTML = '<p>Your cart is empty.</p>';
@@ -29,18 +28,36 @@ const loadCartItems = async (user) => {
             return;
         }
 
+        // Group similar items
+        const groupedItems = {};
         cartItemsSnapshot.forEach(doc => {
             const item = doc.data();
-            total += item.price;
+            const itemKey = `${item.name}-${item.price}`;
+            if (groupedItems[itemKey]) {
+                groupedItems[itemKey].quantity += 1;
+                groupedItems[itemKey].docIds.push(doc.id);
+                groupedItems[itemKey].totalPrice += item.price;
+            } else {
+                groupedItems[itemKey] = {
+                    ...item,
+                    quantity: 1,
+                    docIds: [doc.id],
+                    totalPrice: item.price
+                };
+            }
+        });
 
+        Object.values(groupedItems).forEach(item => {
+            total += item.totalPrice;
             const cartItemElement = document.createElement('div');
             cartItemElement.className = 'cart-item';
             cartItemElement.innerHTML = `
                 <img src="${item.imageUrls}" alt="${item.name}" class="cart-item-image">
                 <div class="cart-item-details">
                     <p><strong>${item.name}</strong></p>
-                    <p>Price: Kes${item.price.toFixed(2)}</p>
-                    <button class="remove-button" data-id="${doc.id}">Remove</button>
+                    <p>Quantity: ${item.quantity}</p>
+                    <p>Price: Kes${item.totalPrice.toFixed(2)}</p>
+                    <button class="remove-button" data-ids="${item.docIds.join(',')}">Remove</button>
                 </div>
             `;
             cartItemsContainer.appendChild(cartItemElement);
@@ -51,7 +68,6 @@ const loadCartItems = async (user) => {
         console.error('Error loading cart items:', error);
     }
 };
-
 // Add an auth state observer to check user login status
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -59,7 +75,7 @@ onAuthStateChanged(auth, (user) => {
         loadCartItems(user);
     } else {
         // Redirect to login page if not logged in
-        alert('You must be logged in to view your cart.');
+        showNotification('You must be logged in to view your cart.');
         window.location.href = 'login.html';
     }
 });
@@ -86,7 +102,7 @@ checkoutButton.addEventListener('click', () => {
     if (user) {
         window.location.href = 'checkout.html'; // Redirect to checkout page
     } else {
-        alert('Please log in to proceed with checkout.');
+        showNotification('Please log in to proceed with checkout.');
     }
 });
 
@@ -104,12 +120,12 @@ window.addToCart = async function (listingId) {
                 listingId: listingId,
                 ...listing
             });
-            alert('Item added to cart!');
+            showNotification('Item added to cart!');
         } catch (error) {
             console.error('Error adding item to cart:', error);
-            alert('Failed to add item to cart. Please try again.');
+            showNotification('Failed to add item to cart. Please try again.');
         }
     } else {
-        alert('Please log in to add items to the cart.');
+        showNotification('Please log in to add items to the cart.');
     }
 };

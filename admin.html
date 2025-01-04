@@ -19,13 +19,14 @@
 
     <script type="module">
         import { sendBroadcastNotification } from '../src/js/notifications.js';
+        import { showNotification } from './notifications.js';
 
         const broadcastForm = document.getElementById('broadcast-form');
         broadcastForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const message = document.getElementById('broadcast-message-input').value;
             await sendBroadcastNotification(message);
-            alert('Broadcast notification sent');
+            showNotification('Broadcast notification sent');
             broadcastForm.reset();
         });
     </script>

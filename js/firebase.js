@@ -1,14 +1,18 @@
  // Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
   // TODO: Add SDKs for Firebase products that you want to use
   // https://firebase.google.com/docs/web/setup#available-libraries
 //  import dotenv from './dotenv'; 
 
  // dotenv.config();
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
   // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyDez809vabqwQrGi5KaQ1-crKvk8oL5x90",
@@ -21,11 +25,8 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-
   };
 
   // Initialize Firebase
-  export const app = initializeApp(firebaseConfig) ;
-
-
-
-// Initialize services
+ 
+export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const database = getDatabase(app);
 export const firestore = getFirestore(app);

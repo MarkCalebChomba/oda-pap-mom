@@ -95,6 +95,7 @@
 
     <script type="module">
         import { signUpUser } from "./js/auth.js";
+        import { showNotification } from './notifications.js';
 
         const signupForm = document.getElementById('signup-form');
         signupForm.addEventListener('submit', async (e) => {
@@ -107,7 +108,7 @@
                 await signUpUser(email,  password);
                 window.location.href = 'index.html'; // Redirect to the main page after signup
             } catch (error) {
-                alert('Signup failed: ' + error.message);
+                showNotification('Signup failed: ' + error.message);
             }
         });
     </script>

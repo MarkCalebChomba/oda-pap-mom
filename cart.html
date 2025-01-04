@@ -22,11 +22,25 @@
         </div>
         <div class="border-line"></div>
         <div class="nav-bar" id="nav-bar">
-            <i class="fas fa-home" onclick="location.href='index.html'"></i>
-            <i class="fas fa-bell" onclick="location.href='notifications.html'" id="notification-icon"></i>
-            <i class="fas fa-shopping-cart" onclick="location.href='cart.html'" id="cart-icon"></i>
-            <i class="fas fa-user-circle" onclick="location.href='profile.html'"></i>
-        </div>
+            <button class="home-button" onclick="location.href='index.html'">
+              <i class="fas fa-home"></i>
+              <p>HOME</p>
+            </button>
+    
+            <button class="home-button" onclick="location.href='notification.html'">
+              <i class="fas fa-bell" id="notification-icon"></i>
+              <p>CHAT</p>
+            </button>
+            <button class="home-button" onclick="location.href='cart.html'">
+              <i class="fas fa-shopping-cart" id="cart-icon"></i>
+              <p>CART</p>
+            </button>
+            <button class="home-button" onclick="location.href='profile.html'">
+              <i class="fas fa-user-circle"></i>
+              <p>PROFILE</p>
+            </button>
+            <!-- -->
+          </div>
     </header>
 
     <main>
@@ -49,3 +63,4 @@
     <script type="module" src="cart.js"></script>
 </body>
 </html>
+

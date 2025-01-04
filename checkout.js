@@ -6,19 +6,19 @@ document.addEventListener("DOMContentLoaded", function() {
     function promptMpesa() {
         const phoneNumber = document.getElementById('phone-number').value;
         if (phoneNumber) {
-            alert(`M-Pesa payment prompt sent to ${phoneNumber}`);
+            showNotification(`M-Pesa payment prompt sent to ${phoneNumber}`);
         } else {
-            alert('Please enter your phone number.');
+            showNotification('Please enter your phone number.');
         }
     }
 
     cardButton.addEventListener('click', function() {
-        alert('Pay with Card selected');
+        showNotification('Pay with Card selected');
         // Add your Card payment logic here
     });
 
     otherButton.addEventListener('click', function() {
-        alert('Other Payment Options selected');
+        showNotification('Other Payment Options selected');
         // Add your other payment logic here
     });
 });

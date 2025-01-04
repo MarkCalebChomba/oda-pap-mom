@@ -1,7 +1,7 @@
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getFirestore, collection, doc, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 import { app } from './js/firebase.js';
-
+import { showNotification } from './notifications.js';
 // Initialize Firebase services using the app instance
 const auth = getAuth(app);
 const firestore = getFirestore(app);
@@ -12,7 +12,7 @@ const wishlistContainer = document.getElementById('wishlist-items');
 // Function to load wishlist items from Firestore
 const loadWishlistItems = async (user) => {
     if (!user) {
-        alert('Please log in to view your wishlist.');
+        showNotification('Please log in to view your wishlist.');
         return;
     }
 
@@ -52,7 +52,7 @@ onAuthStateChanged(auth, (user) => {
         loadWishlistItems(user);
     } else {
         // Redirect to login page if not logged in
-        alert('You must be logged in to view your wishlist.');
+        showNotification('You must be logged in to view your wishlist.');
         window.location.href = 'login.html';
     }
 });
@@ -90,13 +90,13 @@ window.addToWishlist = async function (listingId) {
                 listingId: listingId,
                 ...listing
             });
-            alert('Item added to wishlist!');
+            showNotification('Item added to wishlist!');
         } catch (error) {
             console.error('Error adding item to wishlist:', error);
-            alert('Failed to add item to wishlist. Please try again.');
+            showNotification('Failed to add item to wishlist. Please try again.');
         }
     } else {
-        alert('Please log in to add items to the wishlist.');
+        showNotification('Please log in to add items to the wishlist.');
     }
 };
 
@@ -114,12 +114,12 @@ async function addToCart(listingId) {
                 listingId: listingId,
                 ...listing
             });
-            alert('Item added to cart!');
+            showNotification('Item added to cart!');
         } catch (error) {
             console.error('Error adding item to cart:', error);
-            alert('Failed to add item to cart. Please try again.');
+            showNotification('Failed to add item to cart. Please try again.');
         }
     } else {
-        alert('Please log in to add items to the cart.');
+        showNotification('Please log in to add items to the cart.');
     }
 }

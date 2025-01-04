@@ -4,8 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fashions- Oda Pap</title>
-    <link rel="stylesheet" href="category.css">
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <div id="loading-overlay">
+        <div class="loader">
+            <div class="loader-content">
+                <img src="images/loader.gif" alt="Loading..." class="loader-gif">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
   
 </head>
 <body>
@@ -90,22 +98,7 @@
                 
                
                 
-                    <script>
-                        function toggleMenu() {
-                            var dropdown = document.getElementById('dropdown');
-                            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                        }
-                
-                        // Close the dropdown if clicked outside
-                        window.onclick = function(event) {
-                            if (!event.target.matches('.menu-icon') && !event.target.matches('.menu-icon *')) {
-                                var dropdown = document.getElementById('dropdown');
-                                if (dropdown.style.display === 'block') {
-                                    dropdown.style.display = 'none';
-                                }
-                            }
-                        }
-                    </script>
+                    
                 </div>
             </div>
             </div>
@@ -121,7 +114,7 @@
             
         </div>
     </header>
-
+    
 
     <main>
         
@@ -131,9 +124,10 @@
             <p class="category-description">Discover the latest and greatest in electronics. From TVs to laptops, find all your tech needs here.</p>
            </div
         
-           <!-- Add this data attribute to specify the category for the page -->
-        <section class="gallery">
-            <div class="listings-container" class="gallery" data-category="electronics">
+<!-- Add this data attribute to specify the category for the page -->
+
+        <section class="gallery"  data-category="electronics">
+            <div class="listings-container" class="gallery">
                 
                 <!-- Listings will be dynamically inserted here -->
             </div>

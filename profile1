@@ -212,12 +212,12 @@
             if (region && county && ward && specificLocation) {
                 const locationData = { region, county, ward, specificLocation };
                 await updateDocumentById(user.uid, { location: locationData });
-                alert('Location updated successfully!');
+                showNotification('Location updated successfully!');
 
                 // Update displayed location
                 displayUserLocation(locationData);
             } else {
-                alert('Please fill in all location details');
+                showNotification('Please fill in all location details');
             }
         });
 

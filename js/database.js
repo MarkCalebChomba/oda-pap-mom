@@ -1,5 +1,5 @@
 // Import necessary modules from Firebase
-import { getDatabase, ref, set, get, update, remove, child } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, set, get, update, remove, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 import { app } from './firebase.js'; // Adjust the path according to your project structure
 
 // Initialize Firebase Realtime Database

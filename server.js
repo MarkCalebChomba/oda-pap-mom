@@ -42,20 +42,19 @@ app.post('/api/initiate-mpesa-payment', async (req, res) => {
 
         const response = await axios.post(
             `${MPESA_API_URL}/mpesa/stkpush/v1/processrequest`,
-            {
-                BusinessShortCode: BUSINESS_SHORT_CODE,
-                Password: password,
-                Timestamp: timestamp,
-                TransactionType: 'CustomerPayBillOnline',
-                Amount: amount,
-                PartyA: phoneNumber,
-                PartyB: BUSINESS_SHORT_CODE,
-                PhoneNumber: phoneNumber,
-                CallBackURL: CALLBACK_URL,
-                AccountReference: accountNumber,
-                TransactionDesc: 'Payment for products',
-            },
-            { headers: { Authorization: `Bearer ${accessToken}` } }
+            {    
+                "BusinessShortCode": "174379",    
+                "Password": "MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMTYwMjE2MTY1NjI3",    
+                "Timestamp":"20160216165627",    
+                "TransactionType": "CustomerPayBillOnline",    
+                "Amount": "1",    
+                "PartyA":"254708374149",    
+                "PartyB":"174379",    
+                "PhoneNumber":"254708374149",    
+                "CallBackURL": "https://mydomain.com/pat",    
+                "AccountReference":"Test",    
+                "TransactionDesc":"Test"
+             }
         );
 
         // Store transaction details in Firebase Realtime Database

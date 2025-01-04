@@ -44,17 +44,17 @@ window.onclick = function(event) {
 };
 
 function addToCart() {
-    alert('Item added to cart');
+    showNotification('Item added to cart');
     // Add item to cart logic
 }
 
 function buyNow() {
-    alert('Proceed to checkout');
+    showNotification('Proceed to checkout');
     window.location.href = 'checkout.html';
     // Buy now logic
 }
 
 function addToWishlist() {
-    alert('Item added to wishlist');
+    showNotification('Item added to wishlist');
     // Add item to wishlist logic
 }
