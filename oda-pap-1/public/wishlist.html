@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wishlist - Oda Pap</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="top-bar">
+            <div class="logo-container">
+                <img src="images/logo.jpg" alt="Oda Pap Logo" class="logo">
+                <span class="logo-text">Oda Pap</span>
+            </div>
+            <div class="top-icons">
+                <button class="home-button" onclick="location.href='index.html'">Home</button>
+                <i class="fas fa-search" id="search-icon"></i>
+                <i class="fas fa-ellipsis-v" id="menu-icon"></i>
+            </div>
+        </div>
+        <div class="border-line"></div>
+        <div class="nav-bar" id="nav-bar">
+            <i class="fas fa-home" onclick="location.href='index.html'"></i>
+            <i class="fas fa-laptop" onclick="location.href='electronics.html'"></i>
+            <i class="fas fa-tshirt" onclick="location.href='fashion.html'"></i>
+            <i class="fas fa-couch" onclick="location.href='furniture.html'"></i>
+            <i class="fas fa-bell" onclick="location.href='notifications.html'" id="notification-icon"></i>
+            <i class="fas fa-shopping-cart" onclick="location.href='cart.html'" id="cart-icon"></i>
+            <i class="fas fa-user-circle" onclick="location.href='profile.html'"></i>
+        </div>
+    </header>
+
+    <main>
+        <section class="wishlist">
+            <h2>My Wishlist</h2>
+            <div class="wishlist-container"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Oda Pap. All Rights Reserved.</p>
+    </footer>
+    <script src="wishlist.js"></script>
+</body>
+</html>

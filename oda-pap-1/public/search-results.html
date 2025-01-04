@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Oda Pap</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="search.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="top-bar">
+            <div class="logo-container">
+                <img src="images/logo.jpg" alt="Oda Pap Logo" class="logo">
+                <span class="logo-text">Oda Pap</span>
+            </div>
+            <button onclick="window.history.back()" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+    </header>
+
+    <main class="search-results-page">
+        <div id="loadingSpinner">Loading...</div>
+        <div id="errorMessage" style="display: none; color: red;"></div>
+
+        <div class="search-results-container">
+            <div class="search-summary">
+                <h2>Search Results for "<span id="searchQuery"></span>"</h2>
+                <p><span id="resultCount">0</span> items found</p>
+            </div>
+
+            <div class="results-grid" id="searchResults"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { app } from "./js/firebase.js";
+
+        // Your Firebase configuration
+        const db = getFirestore(app);
+
+        async function performSearch() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('q');
+            
+            document.getElementById('searchQuery').textContent = searchQuery || '';
+
+            if (!searchQuery) {
+                showError("No search query specified");
+                return;
+            }
+
+            try {
+                const q = query(
+                    collection(db, "Listings"),
+                    where("name", ">=", searchQuery.toLowerCase()),
+                    where("name", "<=", searchQuery.toLowerCase() + '\uf8ff')
+                );
+
+                const querySnapshot = await getDocs(q);
+                displayResults(querySnapshot);
+            } catch (error) {
+                console.error("Search error:", error);
+                showError("Error performing search");
+            }
+        }
+
+        function displayResults(querySnapshot) {
+            const resultsContainer = document.getElementById('searchResults');
+            const resultCount = document.getElementById('resultCount');
+            
+            document.getElementById('loadingSpinner').style.display = 'none';
+            resultCount.textContent = querySnapshot.size;
+
+            if (querySnapshot.empty) {
+                resultsContainer.innerHTML = '<p>No results found</p>';
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const product = doc.data();
+                const productEl = document.createElement('div');
+                productEl.className = 'product-card';
+                productEl.innerHTML = `
+                    <img src="${product.imageUrls[0]}" alt="${product.name}">
+                    <h3>${product.name}</h3>
+                    <p>KES ${product.price}</p>
+                    <button onclick="window.location.href='product.html?id=${doc.id}'">
+                        View Details
+                    </button>
+                `;
+                resultsContainer.appendChild(productEl);
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // Perform search when page loads
+        document.addEventListener('DOMContentLoaded', performSearch);
+    </script>
+</body>
+</html>

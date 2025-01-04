@@ -1,0 +1,82 @@
+export function initializeImageSliders() {
+    const sliders = document.querySelectorAll('.product-image-container');
+  
+    sliders.forEach(slider => {
+      let currentIndex = 0;
+      const images = slider.querySelectorAll('.product-image');
+      const imageSlider = slider.querySelector('.image-slider');
+      
+      // Create dots container
+      const dotsContainer = document.createElement('div');
+      dotsContainer.className = 'pagination-dots';
+      
+      // Create dots based on number of images
+      images.forEach((_, index) => {
+        const dot = document.createElement('div');
+        dot.className = `dot ${index === 0 ? 'active' : ''}`;
+        dot.addEventListener('click', () => goToSlide(index));
+        dotsContainer.appendChild(dot);
+      });
+      
+      slider.appendChild(dotsContainer);
+  
+      // Touch handling variables
+      let startX;
+      let isDragging = false;
+  
+      // Touch events
+      slider.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+      });
+  
+      slider.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const currentX = e.touches[0].clientX;
+        const diff = startX - currentX;
+        const sliderWidth = slider.offsetWidth;
+        
+        if (
+          (currentIndex === 0 && diff < 0) || 
+          (currentIndex === images.length - 1 && diff > 0)
+        ) {
+          return;
+        }
+        
+        imageSlider.style.transform = `translateX(${-currentIndex * 100 - (diff / sliderWidth) * 100}%)`;
+      });
+  
+      slider.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        const diff = startX - e.changedTouches[0].clientX;
+        const threshold = slider.offsetWidth * 0.2;
+  
+        if (Math.abs(diff) > threshold) {
+          if (diff > 0 && currentIndex < images.length - 1) {
+            currentIndex++;
+          } else if (diff < 0 && currentIndex > 0) {
+            currentIndex--;
+          }
+        }
+  
+        updateSlider();
+      });
+  
+      function goToSlide(index) {
+        currentIndex = index;
+        updateSlider();
+      }
+  
+      function updateSlider() {
+        imageSlider.style.transform = `translateX(-${currentIndex * 100}%)`;
+        
+        // Update dots
+        const dots = dotsContainer.querySelectorAll('.dot');
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('active', index === currentIndex);
+        });
+      }
+    });
+  }
