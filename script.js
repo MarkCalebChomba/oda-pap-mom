@@ -189,9 +189,18 @@ const loadFeaturedListings = async () => {
               ${imageUrls.map(url => `
                 <img src="${url}" alt="Product Image" class="product-image">
               `).join('')}
+               <div class="product-tags">
+              ${listing.condition ? `<span class="product-condition">${listing.condition}</span>` : ''}
+              ${listing.age ? `<span class="product-age">${listing.age} </span>` : ''}
+            </div>
             </div>
           </div>
-          <p class="product-price"><strong>KES ${listing.price}</strong></p>
+          <p class="product-price">
+            <strong>KES ${listing.price}</strong>
+            <span class="initial-price">${listing.initialPrice ? `<s>KES ${listing.initialPrice}</s>` : ''}</span>
+          </p>
+          <p class="product-description">${listing.description ? listing.description : ''}</p>
+          
           <div class="product-actions">
             <div>
               <i class="fas fa-cart-plus" onclick="addToCart('${listingDoc.id}')"></i>
@@ -205,7 +214,10 @@ const loadFeaturedListings = async () => {
               <i class="fas fa-heart" onclick="addToWishlist('${listingDoc.id}')"></i>
               <p>Wishlist</p>
             </div>
+
           </div>
+
+
         </div>
       `;
 
@@ -415,4 +427,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
-  
+  // Add input validation
+function validateUserInput(input) {
+  // Add validation logic
+}
+
+// Implement rate limiting for search
+const rateLimiter = new RateLimiter(10, 1000); // 10 requests per second
+
+// Create centralized error handling
+const errorHandler = {
+  network: (error) => {
+      showNotification('Network error', 'error');
+  },
+  auth: (error) => {
+      showNotification('Authentication error', 'error');
+  }
+}

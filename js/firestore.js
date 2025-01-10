@@ -68,9 +68,22 @@ const getDocuments = async (collectionName, filters = []) => {
     throw error;
   }
 };
+// Function to set a document with a specific ID
+const setDocumentById = async (collectionName, docId, data) => {
+  try {
+      const docRef = doc(db, collectionName, docId);
+      await setDoc(docRef, data);
+      console.log(`Document set in ${collectionName} with ID: ${docId}`);
+      return docId;
+  } catch (error) {
+      console.error(`Error setting document in ${collectionName}:`, error);
+      throw error;
+  }
+};
+
 
 // Export the functions to use them in other files
-export { addDocument, getDocumentById, updateDocumentById, getDocuments, };
+export { addDocument, getDocumentById, updateDocumentById, getDocuments,setDocumentById };
 
 export const createDocumentById = async (collection, id, data) => {
   try {

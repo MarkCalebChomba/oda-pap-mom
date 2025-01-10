@@ -1,6 +1,7 @@
 import { app } from "./js/firebase.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { showNotification } from './notifications.js';
 
 const auth = getAuth(app);
 const db = getFirestore(app);

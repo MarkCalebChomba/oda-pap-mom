@@ -211,7 +211,7 @@
 
         
 
-        <button type="submit" id="submit-button">List Item</button>
+        <button type="submit" id="submit-button" data-id="">List Item</button>
     </form>
 
     <!-- User listings -->
@@ -301,9 +301,12 @@
                 const listing = docSnap.data();
                 document.getElementById('item-name').value = listing.name;
                 document.getElementById('item-price').value = listing.price;
+                document.getElementById('initial-price').value = listing.initialPrice; // Capture initial price
                 document.getElementById('condition').value = listing.condition;
                 document.getElementById('age').value = listing.age;
-                document.getElementById('description').value = listing.description.replace(`${listing.condition}, ${listing.age} - `, "");
+                document.getElementById('category').value = listing.category; // Capture category
+                document.getElementById('quantity').value = listing.quantity; // Capture quantity
+                document.getElementById('description').value = listing.description;
 
                 // Change the submit button to 'Update' and store listing ID
                 document.getElementById('submit-button').innerText = 'Update Item';
@@ -324,25 +327,15 @@
             }
 
             const itemName = document.getElementById('item-name').value;
-            const itemPrice = document.getElementById('item-price').value;
+            const itemPrice = parseFloat(document.getElementById('item-price').value);
+            const initialPrice = parseFloat(document.getElementById('initial-price').value); // Capture initial price
             const condition = document.getElementById('condition').value;
-            const age = document.getElementById('age').value;
-            const description = document.getElementById('description').value;
-            const mediaFiles = document.getElementById('media-upload').files;
+            const age = parseInt(document.getElementById('age').value); // Capture age
+            const category = document.getElementById('category').value; // Capture category
+            const quantity = parseInt(document.getElementById('quantity').value); // Capture quantity
+            const fullDescription = document.getElementById('description').value;
 
-            // Concatenate the condition, age, and user-written description into a single description
-            const fullDescription = `${condition}, ${age} - ${description}`;
-
-            let imageUrls = [];
-            for (let i = 0; i < mediaFiles.length; i++) {
-                const file = mediaFiles[i];
-                const storageRefPath = storageRef(storage, `listings/${user.uid}/${file.name}`);
-                const snapshot = await uploadBytes(storageRefPath, file);
-                const imageUrl = await getDownloadURL(snapshot.ref);
-                imageUrls.push(imageUrl);
-            }
-
-            let finalPrice = parseFloat(itemPrice);
+            let finalPrice = itemPrice;
             if (finalPrice < 10000) {
                 finalPrice += finalPrice * 0.05;
             } else {
@@ -357,8 +350,11 @@
                 await updateDoc(docRef, {
                     name: itemName,
                     price: finalPrice,
+                    initialPrice: initialPrice, // Include initial price
                     condition: condition,
                     age: age,
+                    category: category, // Include category
+                    quantity: quantity, // Include quantity
                     description: fullDescription,
                     imageUrls: imageUrls.length ? imageUrls : undefined // Update only if media exists
                 });
@@ -369,8 +365,11 @@
                     uploaderId: user.uid,
                     name: itemName,
                     price: finalPrice,
+                    initialPrice: initialPrice, // Include initial price
                     condition: condition,
                     age: age,
+                    category: category, // Include category
+                    quantity: quantity, // Include quantity
                     description: fullDescription,
                     imageUrls: imageUrls,
                     createdAt: new Date().toISOString()
