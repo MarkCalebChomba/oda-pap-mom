@@ -203,10 +203,41 @@
         <label for="description">Description: <small>Give a detailed descriptionn of the item</small></label>
         <textarea id="description" rows="4" required></textarea>
 
+        <!-- Image upload section with 5 plus buttons -->
         <div class="form-group">
-            <label for="media-upload">Upload Media (Max 5)</label>
-            <input type="file" id="media-upload" name="media-upload" accept="image/* , video/*" multiple required>
-            <small>please upload up to 5 images/ short videos allowed .</small>
+            <label>Upload Media (Max 5)</label>
+            <div class="image-upload-container">
+                <input type="file" id="media-upload-1" accept="image/*" style="display: none;" onchange="previewImage(event, 1)">
+                <label for="media-upload-1" class="image-upload-label" id="image-upload-label-1">
+                    +
+                    <span class="delete-icon" onclick="removeImage(1)">x</span>
+                </label>
+
+                <input type="file" id="media-upload-2" accept="image/*" style="display: none;" onchange="previewImage(event, 2)">
+                <label for="media-upload-2" class="image-upload-label" id="image-upload-label-2">
+                    +
+                    <span class="delete-icon" onclick="removeImage(2)">x</span>
+                </label>
+
+                <input type="file" id="media-upload-3" accept="image/*" style="display: none;" onchange="previewImage(event, 3)">
+                <label for="media-upload-3" class="image-upload-label" id="image-upload-label-3">
+                    +
+                    <span class="delete-icon" onclick="removeImage(3)">x</span>
+                </label>
+
+                <input type="file" id="media-upload-4" accept="image/*" style="display: none;" onchange="previewImage(event, 4)">
+                <label for="media-upload-4" class="image-upload-label" id="image-upload-label-4">
+                    +
+                    <span class="delete-icon" onclick="removeImage(4)">x</span>
+                </label>
+
+                <input type="file" id="media-upload-5" accept="image/*" style="display: none;" onchange="previewImage(event, 5)">
+                <label for="media-upload-5" class="image-upload-label" id="image-upload-label-5">
+                    +
+                    <span class="delete-icon" onclick="removeImage(5)">x</span>
+                </label>
+            </div>
+            <small>Please upload up to 5 images.</small>
         </div>
 
         
@@ -214,10 +245,21 @@
         <button type="submit" id="submit-button" data-id="">List Item</button>
     </form>
 
+    <!-- Spinner for form submission -->
+    <div id="spinner" class="spinner" style="display: none;"></div>
+
     <!-- User listings -->
      <strong>YOUR LISTINGS</strong>
      <P>Your listing active listings will appear here</P>
     <div id="listings-container"></div>
+
+    <!-- Modal for enlarged image -->
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-content">
+            <img id="modal-image" src="">
+        </div>
+    </div>
 
     <script type="module">
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
@@ -229,6 +271,39 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
+
+        let imageUrls = []; // Add this line to declare imageUrls
+
+        // Function to preview image and replace the plus button
+        window.previewImage = function(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(`image-upload-label-${index}`).style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById(`image-upload-label-${index}`).textContent = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Function to remove image and reset the plus button
+        window.removeImage = function(index) {
+            document.getElementById(`media-upload-${index}`).value = '';
+            document.getElementById(`image-upload-label-${index}`).style.backgroundImage = '';
+            document.getElementById(`image-upload-label-${index}`).textContent = '+';
+        };
+
+        // Function to open the modal with the clicked image
+        window.openModal = function(imageUrl) {
+            document.getElementById('modal-image').src = imageUrl;
+            document.getElementById('imageModal').style.display = "block";
+        };
+
+        // Function to close the modal
+        window.closeModal = function() {
+            document.getElementById('imageModal').style.display = "none";
+        };
 
         // Check if profile is complete and user is authenticated
         document.addEventListener('DOMContentLoaded', () => {
@@ -243,8 +318,18 @@
                         document.getElementById("seller-email").textContent = userData.email || "Unknown";
                         document.getElementById("seller-location").textContent = userData.county || "Location Unknown";
                         document.getElementById("user-ward").textContent = userData.ward || "Location Unknown";
+
+                        if (!userData.profilePicUrl || !userData.name || !userData.email || !userData.county || !userData.ward) {
+                            document.getElementById("profile-incomplete-message").style.display = 'block';
+                            setTimeout(() => {
+                                window.location.href = 'profile.html';
+                            }, 5000);
+                        }
                     } else {
                         document.getElementById("profile-incomplete-message").style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = 'profile.html';
+                        }, 5000);
                     }
                 } else {
                     window.location.href = 'login.html'; // Redirect if no user is logged in
@@ -268,7 +353,7 @@
                     listingElement.className = 'listing';
                     listingElement.innerHTML = `
                         <div class="listing-media">
-                            ${listing.imageUrls ? listing.imageUrls.map(url => `<img src="${url}" class="listing-img" />`).join('') : ''}
+                            ${listing.imageUrls ? listing.imageUrls.map(url => `<img src="${url}" class="listing-img" onclick="openModal('${url}')" />`).join('') : ''}
                         </div>
                         <h4>${listing.name}</h4>
                         <p><strong>Price:</strong> KES ${listing.price}</p>
@@ -326,11 +411,13 @@
                 return;
             }
 
+            document.getElementById('spinner').style.display = 'block'; // Show spinner
+
             const itemName = document.getElementById('item-name').value;
             const itemPrice = parseFloat(document.getElementById('item-price').value);
             const initialPrice = parseFloat(document.getElementById('initial-price').value); // Capture initial price
             const condition = document.getElementById('condition').value;
-            const age = parseInt(document.getElementById('age').value); // Capture age
+            const age = document.getElementById('age').value; // Capture age
             const category = document.getElementById('category').value; // Capture category
             const quantity = parseInt(document.getElementById('quantity').value); // Capture quantity
             const fullDescription = document.getElementById('description').value;
@@ -343,6 +430,23 @@
             }
 
             const listingId = document.getElementById('submit-button').dataset.id;
+
+            // Handle file uploads
+            const mediaFiles = [
+                document.getElementById('media-upload-1').files[0],
+                document.getElementById('media-upload-2').files[0],
+                document.getElementById('media-upload-3').files[0],
+                document.getElementById('media-upload-4').files[0],
+                document.getElementById('media-upload-5').files[0]
+            ].filter(file => file !== undefined);
+
+            imageUrls = [];
+            for (const file of mediaFiles) {
+                const fileRef = storageRef(storage, `listings/${user.uid}/${file.name}`);
+                await uploadBytes(fileRef, file);
+                const fileUrl = await getDownloadURL(fileRef);
+                imageUrls.push(fileUrl);
+            }
 
             if (listingId) {
                 // Update existing listing
@@ -376,6 +480,8 @@
                 });
                 showNotification("Item listed successfully!");
             }
+
+            document.getElementById('spinner').style.display = 'none'; // Hide spinner
 
             event.target.reset();
             document.getElementById('submit-button').innerText = 'List Item';

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        .profile {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+        }
+        .details, .listings {
+            margin-top: 20px;
+        }
+        .details h2, .listings h2 {
+            text-align: center;
+            color: #333;
+        }
+        .details p, .listings ul {
+            text-align: center;
+            color: #666;
+        }
+        .listings ul {
+            list-style: none;
+            padding: 0;
+        }
+        .listing-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .listing-item img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        .listing-item span {
+            color: #333;
+        }
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+            border-radius: 10px;
+        }
+        .popup.show {
+            display: block;
+        }
+        .popup-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .popup-buttons button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff5722;
+            color: white;
+            font-size: 16px;
+        }
+        .popup-buttons button:hover {
+            background-color: #e64a19;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        #followButton, #messageButton {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff5722;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #followButton:hover, #messageButton:hover {
+            background-color: #e64a19;
+        }
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        .fullscreen-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+        .fullscreen-overlay.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="top-bar">
+            <!-- ...existing code... -->
+        </div>
+        <div class="border-line"></div>
+        <div class="nav-bar" id="nav-bar">
+            <button class="home-button" onclick="location.href='index.html'">
+                <i class="fas fa-home"></i>
+                <p>HOME</p>
+            </button>
+            <button class="home-button" onclick="location.href='notification.html'">
+                <i class="fas fa-bell" id="notification-icon"></i>
+                <p>CHAT</p>
+            </button>
+            <button class="home-button" onclick="location.href='cart.html'">
+                <i class="fas fa-shopping-cart" id="cart-icon"></i>
+                <p>CART</p>
+            </button>
+            <button class="home-button" onclick="location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+                <p>PROFILE</p>
+            </button>
+        </div>
+    </header>
+    <div class="profile">
+        <img src="path/to/profile-pic.jpg" alt="Profile Picture" class="profile-pic" id="profilePic">
+        <div class="details" id="details">
+            <h2>User Details</h2>
+            <!-- Add user details here -->
+            <p id="userName">Name: loading....</p>
+            <div class="action-buttons">
+                <button id="followButton">Follow</button>
+                <button id="messageButton">Message</button>
+            </div>
+            <!-- ...existing code... -->
+        </div>
+        <div class="listings" id="listings">
+            <h2>User Listings</h2>
+            <!-- Add user listings here -->
+            <ul id="userListings">
+                <li>Listing 1</li>
+                <li>Listing 2</li>
+                <!-- ...existing code... -->
+            </ul>
+        </div>
+    </div>
+    <div class="popup" id="unfollowPopup">
+        <p>Do you want to unfollow this user?</p>
+        <div class="popup-buttons">
+            <button id="confirmUnfollow">Yes</button>
+            <button id="cancelUnfollow">No</button>
+        </div>
+    </div>
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <img src="" alt="Fullscreen Profile Picture" id="fullscreenImage">
+    </div>
+    <script type="module">
+        import { app } from "./js/firebase.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { showNotification } from './notifications.js';
+        import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+
+        const firestore = getFirestore(app);
+        const auth = getAuth(app);
+
+        async function loadUserProfile(userId) {
+            const userDoc = await getDoc(doc(firestore, "Users", userId));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                document.getElementById('userName').textContent = `Name: ${userData.name}`;
+
+                const profilePic = document.getElementById('profilePic');
+                profilePic.src = userData.profilePicUrl || 'path/to/profile-pic.jpg';
+                document.getElementById('details').style.display = 'block';
+                document.getElementById('listings').style.display = 'block';
+
+                const listingsSnapshot = await getDocs(query(collection(firestore, "Listings"), where("uploaderId", "==", userId)));
+                const listingsContainer = document.getElementById('userListings');
+                listingsContainer.innerHTML = '';
+                listingsSnapshot.forEach(doc => {
+                    const listing = doc.data();
+                    const li = document.createElement('li');
+                    li.className = 'listing-item';
+                    li.innerHTML = `<img src="${listing.imageUrls || 'images/product-placeholder.png'}" alt="${listing.name}"><span>${listing.name}</span>`;
+                    li.addEventListener('click', () => {
+                        window.location.href = `product.html?id=${doc.id}`;
+                    });
+                    listingsContainer.appendChild(li);
+                });
+
+                const followButton = document.getElementById('followButton');
+                const currentUser = auth.currentUser;
+
+                if (currentUser) {
+                    const followerRef = doc(firestore, `users/${userId}/followers`, currentUser.uid);
+                    const followerDoc = await getDoc(followerRef);
+
+                    if (followerDoc.exists()) {
+                        followButton.textContent = 'Followed';
+                    }
+
+                    followButton.addEventListener('click', async () => {
+                        if (followButton.textContent === 'Follow') {
+                            try {
+                                await setDoc(followerRef, {
+                                    followerId: currentUser.uid,
+                                    followedAt: new Date()
+                                });
+                                showNotification('You are now following this user!', 'success');
+                                followButton.textContent = 'Followed';
+                            } catch (error) {
+                                console.error("Error following user:", error);
+                                showNotification('Failed to follow user. Please try again.', 'error');
+                            }
+                        } else if (followButton.textContent === 'Followed') {
+                            const unfollowPopup = document.getElementById('unfollowPopup');
+                            unfollowPopup.classList.add('show');
+
+                            document.getElementById('confirmUnfollow').addEventListener('click', async () => {
+                                try {
+                                    await deleteDoc(followerRef);
+                                    showNotification('You have unfollowed this user.', 'success');
+                                    followButton.textContent = 'Follow';
+                                    unfollowPopup.classList.remove('show');
+                                } catch (error) {
+                                    console.error("Error unfollowing user:", error);
+                                    showNotification('Failed to unfollow user. Please try again.', 'error');
+                                }
+                            });
+
+                            document.getElementById('cancelUnfollow').addEventListener('click', () => {
+                                unfollowPopup.classList.remove('show');
+                            });
+                        }
+                    });
+                } else {
+                    followButton.addEventListener('click', () => {
+                        showNotification('Please log in to follow users.', 'error');
+                    });
+                }
+
+                document.getElementById('messageButton').addEventListener('click', () => {
+                    window.location.href = `chat.html?sellerId=${userId}`;
+                });
+
+                profilePic.addEventListener('click', () => {
+                    const fullscreenOverlay = document.getElementById('fullscreenOverlay');
+                    const fullscreenImage = document.getElementById('fullscreenImage');
+                    fullscreenImage.src = profilePic.src;
+                    fullscreenOverlay.classList.add('show');
+                });
+
+                document.getElementById('fullscreenOverlay').addEventListener('click', () => {
+                    document.getElementById('fullscreenOverlay').classList.remove('show');
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('userId');
+            if (userId) {
+                loadUserProfile(userId);
+            }
+        });
+    </script>
+</body>
+</html>

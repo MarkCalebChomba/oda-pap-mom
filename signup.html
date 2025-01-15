@@ -50,6 +50,23 @@
             border-color: #ff751a;
         }
 
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-container input[type="password"] {
+            padding-right: 40px;
+        }
+
+        .password-container .fa-eye {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+
         .signup-button {
             background-color: #ff751a; /* Darker carrot orange */
             color: #ffffff;
@@ -80,14 +97,21 @@
             text-decoration: underline;
         }
     </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
 </head>
 <body>
     <div class="signup-container">
         <h2>Sign Up</h2>
         <form id="signup-form">
             <input type="email" id="signup-email-input" class="email-input" placeholder="Email" required>
-            
-            <input type="password" id="signup-password-input" class="password-input" placeholder="Password" required>
+            <input type="text" id="signup-phone-input" class="phone-input" placeholder="Phone Number" required>
+            <div class="password-container">
+                <input type="password" id="signup-password-input" class="password-input" placeholder="Password" required>
+                <i class="fas fa-eye" id="toggle-signup-password"></i>
+            </div>
             <button type="submit" id="signup-button" class="signup-button">Sign Up</button>
         </form>
         <p>Already have an account? <a href="login.html">Login</a></p>
@@ -98,18 +122,27 @@
         import { showNotification } from './notifications.js';
 
         const signupForm = document.getElementById('signup-form');
+        const toggleSignupPassword = document.getElementById('toggle-signup-password');
+        const signupPasswordInput = document.getElementById('signup-password-input');
+
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('signup-email-input').value;
-           
-            const password = document.getElementById('signup-password-input').value;
+            const phone = document.getElementById('signup-phone-input').value;
+            const password = signupPasswordInput.value;
 
             try {
-                await signUpUser(email,  password);
+                await signUpUser(email, phone, password);
                 window.location.href = 'index.html'; // Redirect to the main page after signup
             } catch (error) {
                 showNotification('Signup failed: ' + error.message);
             }
+        });
+
+        toggleSignupPassword.addEventListener('click', () => {
+            const type = signupPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            signupPasswordInput.setAttribute('type', type);
+            toggleSignupPassword.classList.toggle('fa-eye-slash');
         });
     </script>
 </body>

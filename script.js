@@ -10,12 +10,15 @@ import {
   getDoc,
   addDoc,
   query,
-  where
+  where,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 import { initializeImageSliders } from './imageSlider.js';
 import { showLoader, hideLoader } from './loader.js';
 
 import { showNotification } from './notifications.js';
+import { animateButton, animateIconToCart, updateCartCounter, updateWishlistCounter, updateChatCounter } from './js/utils.js';
+
 // Initialize Firebase services using the app instance
 const auth = getAuth(app);
 const storage = getStorage(app);
@@ -131,6 +134,11 @@ window.copyToClipboard = async (text) => {
   }
 };
 
+// Function to redirect to user profile page
+window.goToUserProfile = function(userId) {
+  window.location.href = `user.html?userId=${userId}`;
+};
+
 const loadFeaturedListings = async () => {
   showLoader();
   try {
@@ -167,14 +175,14 @@ const loadFeaturedListings = async () => {
       listingElement.innerHTML = `
         <div class="product-item">
           <div class="profile">
-            <img src="${userData.profilePicUrl || "images/profile-placeholder.png"}" alt="${displayName}">
+            <img src="${userData.profilePicUrl || "images/profile-placeholder.png"}" alt="${displayName}" onclick="goToUserProfile('${uploaderId}')">
             <div>
               <p><strong>${displayName}</strong></p>
               <p>${listing.name}</p>
             </div>
             <div class="product-actions">
               <div>
-                <i class="fas fa-comments" onclick="goToChat('${sellerId}')"></i>
+                <i class="fas fa-comments" onclick="goToChat('${sellerId}', '${listingDoc.id}')"></i>
                 <small> Message </small>
               </div>
               <div>
@@ -270,6 +278,12 @@ window.addToCart = async function (listingId) {
         ...listing,
       });
       showNotification("Item added to cart!");
+      const addToCartBtn = document.querySelector(`[data-listing-id="${listingId}"] .add-to-cart-btn`);
+      if (addToCartBtn) {
+        animateButton(addToCartBtn, 'sounds/pop-39222.mp3');
+        animateIconToCart(addToCartBtn);
+      }
+      await updateCartCounter(firestore, user.uid);
     } catch (error) {
       console.error("Error adding item to cart:", error);
       showNotification("Failed to add item to cart. Please try again.");
@@ -293,6 +307,12 @@ window.addToWishlist = async function (listingId) {
         ...listing,
       });
       showNotification("Item added to wishlist!");
+      const wishlistBtn = document.querySelector(`[data-listing-id="${listingId}"] .wishlist-btn`);
+      if (wishlistBtn) {
+        animateButton(wishlistBtn, 'sounds/pop-268648.mp3');
+        animateIconToCart(wishlistBtn);
+      }
+      await updateWishlistCounter(firestore, user.uid);
     } catch (error) {
       console.error("Error adding item to wishlist:", error);
       showNotification("Failed to add item to wishlist. Please try again.");
@@ -316,7 +336,7 @@ window.buyNow = async function (listingId) {
         ...listing
       });
       showNotification("Proceed to checkout!");
-      // Redirect to checkout page or initiate the checkout process
+      animateButton(document.querySelector(`[data-listing-id="${listingId}"] .buy-now-btn`));
       window.location.href = "checkout.html"; // Assuming you have a checkout page
     } catch (error) {
       console.error("Error proceeding to checkout:", error);
@@ -328,17 +348,15 @@ window.buyNow = async function (listingId) {
 };
 
 // Function to redirect to chat with seller
-window.goToChat = function (sellerId) {
-  const user = auth.currentUser;
-  if (user) {
-    // Redirect the user to the chat page with the seller
-    window.location.href = `chat.html?sellerId=${sellerId}`;
-  } else {
-    showNotification("Please log in to message the seller.");
-  }
+window.goToChat = function (sellerId, listingId) {
+    const user = auth.currentUser;
+    if (user) {
+        // Redirect the user to the chat page with the seller and product ID
+        window.location.href = `chat.html?sellerId=${sellerId}&listingId=${listingId}`;
+    } else {
+        showNotification("Please log in to message the seller.");
+    }
 };
-
-
 
 //search
 // Search functionality
@@ -358,44 +376,86 @@ function debounce(func, wait) {
     };
 }
 
+// RateLimiter class definition
+class RateLimiter {
+  constructor(maxRequests, interval) {
+    this.maxRequests = maxRequests;
+    this.interval = this.interval;
+    this.requests = [];
+  }
+
+  canProceed() {
+    const now = Date.now();
+    this.requests = this.requests.filter(timestamp => now - timestamp < this.interval);
+    if (this.requests.length < this.maxRequests) {
+      this.requests.push(now);
+      return true;
+    }
+    return false;
+  }
+}
+
+// Add input validation
+function validateUserInput(input) {
+  // Add validation logic
+}
+
+// Implement rate limiting for search
+const rateLimiter = new RateLimiter(10, 1000); // 10 requests per second
+
+// Create centralized error handling
+const errorHandler = {
+  network: (error) => {
+    showNotification('Network error', 'error');
+  },
+  auth: (error) => {
+    showNotification('Authentication error', 'error');
+  }
+};
+
 const performSearch = async (searchTerm) => {
-    if (!searchTerm || searchTerm.length < 2) {
+  if (!rateLimiter.canProceed()) {
+    showNotification('Too many requests. Please try again later.', 'error');
+    return;
+  }
+
+  if (!searchTerm || searchTerm.length < 2) {
+    searchSuggestions.style.display = 'none';
+    return;
+  }
+  try {
+    const listingsRef = collection(firestore, "Listings");
+    const q = query(
+        listingsRef, 
+        where("name", ">=", searchTerm.toLowerCase()),
+        where("name", "<=", searchTerm.toLowerCase() + '\uf8ff')
+    );
+    const querySnapshot = await getDocs(q);
+    searchSuggestions.innerHTML = '';
+    
+    if (querySnapshot.empty) {
         searchSuggestions.style.display = 'none';
         return;
     }
-    try {
-        const listingsRef = collection(firestore, "Listings");
-        const q = query(
-            listingsRef, 
-            where("name", ">=", searchTerm.toLowerCase()),
-            where("name", "<=", searchTerm.toLowerCase() + '\uf8ff')
-        );
-        const querySnapshot = await getDocs(q);
-        searchSuggestions.innerHTML = '';
-        
-        if (querySnapshot.empty) {
-            searchSuggestions.style.display = 'none';
-            return;
-        }
 
-        querySnapshot.forEach((doc) => {
-            const listing = doc.data();
-            const div = document.createElement('div');
-            div.className = 'suggestion-item';
-            div.innerHTML = `
-                <img src="${listing.imageUrls[0] || 'images/product-placeholder.png'}" alt="${listing.name}">
-                <span>${listing.name}</span>
-                <span>KES ${listing.price}</span>
-            `;
-            div.addEventListener('click', () => {
-                window.location.href = `product.html?id=${doc.id}`;
-            });
-            searchSuggestions.appendChild(div);
+    querySnapshot.forEach((doc) => {
+        const listing = doc.data();
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.innerHTML = `
+            <img src="${listing.imageUrls[0] || 'images/product-placeholder.png'}" alt="${listing.name}">
+            <span>${listing.name}</span>
+            <span>KES ${listing.price}</span>
+        `;
+        div.addEventListener('click', () => {
+            window.location.href = `product.html?id=${doc.id}`;
         });
-        searchSuggestions.style.display = 'block';
-    } catch (error) {
-        console.error("Search error:", error);
-    }
+        searchSuggestions.appendChild(div);
+    });
+    searchSuggestions.style.display = 'block';
+  } catch (error) {
+    errorHandler.network(error);
+  }
 };
 
 const debouncedSearch = debounce((e) => {
@@ -403,9 +463,8 @@ const debouncedSearch = debounce((e) => {
 }, 300);
 
 // Initialize everything when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
-    // Load featured listings
-    loadFeaturedListings();
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadFeaturedListings();
 
     // Setup search event listeners
     if (searchInput) {
@@ -426,21 +485,114 @@ document.addEventListener("DOMContentLoaded", () => {
             searchSuggestions.style.display = 'none';
         }
     });
+
+    // Ensure counters are always available
+    if (auth.currentUser) {
+        await updateCartCounter(firestore, auth.currentUser.uid);
+        await updateWishlistCounter(firestore, auth.currentUser.uid);
+        await updateChatCounter(firestore, auth.currentUser.uid);
+    }
 });
-  // Add input validation
-function validateUserInput(input) {
-  // Add validation logic
-}
 
-// Implement rate limiting for search
-const rateLimiter = new RateLimiter(10, 1000); // 10 requests per second
+// Function to display chat history item
+async function displayChat(chatData) {
+  const chatItem = document.createElement("li");
+  chatItem.classList.add("notification-item");
 
-// Create centralized error handling
-const errorHandler = {
-  network: (error) => {
-      showNotification('Network error', 'error');
-  },
-  auth: (error) => {
-      showNotification('Authentication error', 'error');
+  // Get profile picture of the seller/buyer
+  let profilePicUrl = "images/profile-placeholder.png";
+  if (chatData.profilePic) {
+    profilePicUrl = chatData.profilePic;
   }
+
+  chatItem.innerHTML = `
+    <div class="chat-item">
+      <div class="profile-picture">
+        <img src="${profilePicUrl}" alt="Profile Picture" class="profile-img" onclick="goToUserProfile('${chatData.sellerId}')">
+      </div>
+      <!-- ...existing code... -->
+    </div>
+  `;
+  // ...existing code...
 }
+
+async function handleAddToCart(listingId) {
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    if (!auth.currentUser) {
+        showNotification("Please login to add items to cart", "warning");
+        return;
+    }
+    const listingRef = doc(db, `Listings/${listingId}`);
+    const snapshot = await getDoc(listingRef);
+    const listing = snapshot.data();
+
+    try {
+        await addDoc(collection(db, `users/${auth.currentUser.uid}/cart`), {
+            userId: auth.currentUser.uid,
+            listingId: listingId,
+            ...listing,
+        });
+        showNotification("Item added to cart!");
+        animateButton(document.querySelector(`[data-listing-id="${listingId}"] .add-to-cart-btn`), 'sounds/pop-39222.mp3');
+        animateIconToCart(document.querySelector(`[data-listing-id="${listingId}"] .add-to-cart-btn`), 'cart-icon');
+        await updateCartCounter(db, auth.currentUser.uid);
+    } catch (error) {
+        console.error("Error adding item to cart:", error);
+        showNotification("Failed to add item to cart. Please try again.");
+    }
+}
+
+async function handleBuyNow(listingId) {
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    if (!auth.currentUser) {
+        showNotification("Please login to purchase items", "warning");
+        return;
+    }
+    const listingRef = doc(db, `Listings/${listingId}`);
+    const snapshot = await getDoc(listingRef);
+    const listing = snapshot.data();
+
+    try {
+        await addDoc(collection(db, `users/${auth.currentUser.uid}/checkout`), {
+            userId: auth.currentUser.uid,
+            listingId: listingId,
+            ...listing
+        });
+        showNotification("Proceed to checkout!");
+        animateButton(document.querySelector(`[data-listing-id="${listingId}"] .buy-now-btn`));
+        window.location.href = "checkout.html"; // Assuming you have a checkout page
+    } catch (error) {
+        console.error("Error proceeding to checkout:", error);
+        showNotification("Failed to proceed to checkout. Please try again.");
+    }
+}
+
+async function handleWishlist(listingId) {
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    if (!auth.currentUser) {
+        showNotification("Please login to add items to wishlist", "warning");
+        return;
+    }
+    const listingRef = doc(db, `Listings/${listingId}`);
+    const snapshot = await getDoc(listingRef);
+    const listing = snapshot.data();
+
+    try {
+        await addDoc(collection(db, `users/${auth.currentUser.uid}/wishlist`), {
+            userId: auth.currentUser.uid,
+            listingId: listingId,
+            ...listing,
+        });
+        showNotification("Item added to wishlist!");
+        animateButton(document.querySelector(`[data-listing-id="${listingId}"] .wishlist-btn`), 'sounds/pop-268648.mp3');
+        animateIconToCart(document.querySelector(`[data-listing-id="${listingId}"] .wishlist-btn`), 'wishlist-icon');
+        await updateWishlistCounter(db, auth.currentUser.uid);
+    } catch (error) {
+        console.error("Error adding item to wishlist:", error);
+        showNotification("Failed to add item to wishlist. Please try again.");
+    }
+}
+

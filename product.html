@@ -19,6 +19,32 @@
                 <i class="fas fa-arrow-left"></i> Back
             </button>
         </div>
+        <div class="border-line"></div>
+        <div class="nav-bar" id="nav-bar">
+            <button class="home-button" onclick="location.href='index.html'">
+                <i class="fas fa-home"></i>
+                <p>HOME</p>
+            </button>
+            <button class="home-button" onclick="location.href='notification.html'" style="position: relative;">
+                <i class="fas fa-bell" id="notification-icon"></i>
+                <span class="cart-notification"></span>
+                <p>CHAT</p>
+            </button>
+            <button class="home-button" onclick="location.href='cart.html'" style="position: relative;">
+                <i class="fas fa-shopping-cart" id="cart-icon"></i>
+                <span class="cart-notification"></span>
+                <p>CART</p>
+            </button>
+            <button class="home-button" onclick="location.href='wishlist.html'" style="position: relative;">
+                <i class="fas fa-heart" id="wishlist-icon"></i>
+                <span class="cart-notification"></span>
+                <p>WISHLIST</p>
+            </button>
+            <button class="home-button" onclick="location.href='profile.html'">
+                <i class="fas fa-user-circle"></i>
+                <p>PROFILE</p>
+            </button>
+        </div>
     </header>
 
     <main class="product-page">
@@ -57,9 +83,6 @@
                         <h1 id="productName"></h1>
                         <div class="product-meta">
                             <span id="productDate"></span>
-                            <span id="productViews">
-                                <i class="fas fa-eye"></i> <span id="viewCount">0</span> views
-                            </span>
                         </div>
                     </div>
                 </div>
@@ -132,10 +155,9 @@
                 <div class="seller-section">
                     <h3>Seller Information</h3>
                     <div class="seller-info">
-                        <img id="sellerImage" src="images/default-profile.png" alt="Seller">
+                        <img id="sellerImage" src="images/default-profile.png" alt="Seller" onclick="goToUserProfile('sellerId')">
                         <div class="seller-details">
                             <h4 id="sellerName"></h4>
-                            <p id="sellerLocation"></p>
                             <div class="seller-stats">
                                 <span id="sellerRating">
                                     <i class="fas fa-star"></i> 4.5
@@ -147,6 +169,30 @@
                         </div>
                         <button id="messageSellerBtn" class="message-btn">
                             <i class="fas fa-comment"></i> Message Seller
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Share Modal -->
+                <div id="shareModal" class="modal">
+                    <div class="modal-content">
+                        <h3>Share this item</h3>
+                        <div class="share-buttons">
+                            <button class="share-btn whatsapp">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </button>
+                            <button class="share-btn telegram">
+                                <i class="fab fa-telegram"></i> Telegram
+                            </button>
+                            <button class="share-btn twitter">
+                                <i class="fab fa-twitter"></i> Twitter
+                            </button>
+                            <button class="share-btn copy">
+                                <i class="fas fa-copy"></i> Copy Link
+                            </button>
+                        </div>
+                        <button class="close-modal">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -172,30 +218,9 @@
         </section>
     </main>
 
-    <!-- Share Modal -->
-    <div id="shareModal" class="modal">
-        <div class="modal-content">
-            <h3>Share this item</h3>
-            <div class="share-buttons">
-                <button class="share-btn whatsapp">
-                    <i class="fab fa-whatsapp"></i> WhatsApp
-                </button>
-                <button class="share-btn telegram">
-                    <i class="fab fa-telegram"></i> Telegram
-                </button>
-                <button class="share-btn twitter">
-                    <i class="fab fa-twitter"></i> Twitter
-                </button>
-                <button class="share-btn copy">
-                    <i class="fas fa-copy"></i> Copy Link
-                </button>
-            </div>
-            <button class="close-modal">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
+    <div id="notification" class="notification">Link copied to clipboard!</div>
 
     <script type="module" src="product.js"></script>
+
 </body>
 </html>

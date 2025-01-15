@@ -4,10 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kitchenware Oda Pap</title>
+    <title>Kitchenware - Oda Pap</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script defer src="scripts.js"></script>
+    <div id="loading-overlay">
+        <div class="loader">
+            <div class="loader-content">
+                <img src="images/loader.gif" alt="Loading..." class="loader-gif">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
 </head>
 
 <body>
@@ -29,8 +36,6 @@
             </div>
 
             <div class="top-icons">
-
-
                 <div class="menu-icon" onclick="toggleMenu()">
                     <i class="fas fa-bars"></i>
                     <p>Menu</p>
@@ -86,72 +91,60 @@
                     </a>
                     <a href="kids.html" class="category">
                         <i class="fas fa-hat-wizard"></i>
-                        <p>kids</p>
+                        <p>Kids</p>
                     </a>
                 </div>
-
-
-
-                <script>
-                    function toggleMenu() {
-                        var dropdown = document.getElementById('dropdown');
-                        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                    }
-
-                    // Close the dropdown if clicked outside
-                    window.onclick = function (event) {
-                        if (!event.target.matches('.menu-icon') && !event.target.matches('.menu-icon *')) {
-                            var dropdown = document.getElementById('dropdown');
-                            if (dropdown.style.display === 'block') {
-                                dropdown.style.display = 'none';
-                            }
-                        }
-                    }
-                </script>
             </div>
-        </div>
-        </div>
         </div>
         <div class="border-line"></div>
         <div class="nav-bar" id="nav-bar">
             <button class="home-button" onclick="location.href='index.html'"><i class="fas fa-home"></i></button>
-
-            <button class="home-button" onclick="location.href='notification.html'"> <i class="fas fa-bell"
-                    id="notification-icon"></i></button>
-            <button class="home-button" onclick="location.href='cart.html'"><i class="fas fa-shopping-cart"
-                    id="cart-icon"></i></button>
-            <button class="home-button" onclick="location.href='profile.html'"><i
-                    class="fas fa-user-circle"></i></button>
-            <!-- -->
-
+            <button class="home-button" onclick="location.href='notification.html'" style="position: relative;">
+                <i class="fas fa-bell" id="notification-icon"></i>
+                <span class="cart-notification"></span>
+                <p>CHAT</p>
+            </button>
+            <button class="home-button" onclick="location.href='cart.html'" style="position: relative;">
+                <i class="fas fa-shopping-cart" id="cart-icon"></i>
+                <span class="cart-notification"></span>
+                <p>CART</p>
+            </button>
+            <button class="home-button" onclick="location.href='wishlist.html'" style="position: relative;">
+                <i class="fas fa-heart" id="wishlist-icon"></i>
+                <span class="cart-notification"></span>
+                <p>WISHLIST</p>
+            </button>
+            <button class="home-button" onclick="location.href='profile.html'"><i class="fas fa-user-circle"></i></button>
         </div>
     </header>
 
-
     <main>
-        <section>
-            <div class="category-header">
-                <i class="fas fa-blender category-icon"></i>
-                <h1>kitchenware</h1>
-                <p class="category-description">Equip your kitchen with the best tools and gadgets. Find everything from
-                    cookware and bakeware to utensils and kitchen storage solutions, making your cooking experience more
-                    enjoyable and efficient.</p>
-            </div </section>
-            <!-- Add this data attribute to specify the category for the page -->
-            <div class="listings-container" data-category="kitchenware">
-                <!-- The gallery items will be dynamically inserted here -->
+        <div class="category-header">
+            <i class="fas fa-blender category-icon"></i>
+            <h1>Kitchenware</h1>
+            <p class="category-description">Explore our range of kitchenware, from appliances to utensils, for all your cooking needs.</p>
+        </div>
+
+        <section class="gallery" data-category="kitchenware">
+            <div id="listings-container" class="listings-container">
+                <!-- Listings will be dynamically inserted here -->
             </div>
+        </section>
 
-
-             
+        <nav>
+            <div id="auth-status">
+                <p>User Status:</p>
+                <!-- User status and logout button will be dynamically inserted here -->
+            </div>
+        </nav>
+    </main>
 
     <footer>
-      <button class="floating-button" onclick="location.href='listing.html'">
-  <i class="fas fa-plus"></i>
-  <span class="button-text">Sell Now</span>
-  <div class="fire-animation"></div>
-</button>
-
+        <button class="floating-button" onclick="location.href='listing.html'">
+            <i class="fas fa-plus"></i>
+            <span class="button-text">Sell Now</span>
+            <div class="fire-animation"></div>
+        </button>
         <script type="module" src="category.js"></script>
         <p>&copy; 2024 Oda Pap. All Rights Reserved.</p>
         <div class="footer-content">

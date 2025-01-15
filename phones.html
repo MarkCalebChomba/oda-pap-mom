@@ -3,10 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fashions- Oda Pap</title>
+    <title>Phones - Oda Pap</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script defer src="scripts.js"></script>
+    <div id="loading-overlay">
+        <div class="loader">
+            <div class="loader-content">
+                <img src="images/loader.gif" alt="Loading..." class="loader-gif">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
 </head>
 <body>
     <header>
@@ -124,20 +131,22 @@
 
 
     <main>
-        <section>
-          <div class="category-header">
-            <i class="fas fa-tv category-icon"></i>
-            <h1>phones</h1>
-            <p class="category-description">Discover the latest and greatest in electronics. From TVs to laptops, find all your tech needs here.</p>
-           </div
+        <div class="category-header">
+            <i class="fas fa-mobile-alt category-icon"></i>
+            <h1>Phones</h1>
+            <p class="category-description">Discover the latest smartphones and accessories to stay connected.</p>
+        </div>
+        <section class="gallery" data-category="phones">
+            <div id="listings-container" class="listings-container">
+                <!-- Listings will be dynamically inserted here -->
+            </div>
         </section>
-        <!-- Add this data attribute to specify the category for the page -->
-<div class="listings-container" data-category="phones">
-    <!-- The gallery items will be dynamically inserted here -->
-</div>
-
-
- 
+        <nav>
+            <div id="auth-status">
+                <p>User Status:</p>
+                <!-- User status and logout button will be dynamically inserted here -->
+            </div>
+        </nav>
     </main>
 
     <footer>

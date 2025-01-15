@@ -3,10 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodStuffs- Oda Pap</title>
+    <title>Kids - Oda Pap</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script defer src="scripts.js"></script>
+    <div id="loading-overlay">
+        <div class="loader">
+            <div class="loader-content">
+                <img src="images/loader.gif" alt="Loading..." class="loader-gif">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
 </head>
 <body>
     <header>
@@ -124,26 +132,22 @@
 
 
     <main>
-        <section>
-          <div class="category-header">
-            <i class="fas fa-carrot category-icon"></i>
-            <h1>FoodStuffs</h1>
-            <p class="category-description">Have your sumptous meal brought at your doorstep</p>
-           </div
+        <div class="category-header">
+            <i class="fas fa-hat-wizard category-icon"></i>
+            <h1>Kids</h1>
+            <p class="category-description">Discover our range of kids' products, from toys to clothing, to keep your little ones happy.</p>
+        </div>
+        <section class="gallery" data-category="kids">
+            <div id="listings-container" class="listings-container">
+                <!-- Listings will be dynamically inserted here -->
+            </div>
         </section>
-        <!-- Add this data attribute to specify the category for the page -->
-<div class="listings-container" data-category="foodstuffs">
-    <!-- The gallery items will be dynamically inserted here -->
-</div>
-<nav>
-    <div id="auth-status">
-      <p>User Status:</p>
-      <!-- User status and logout button will be dynamically inserted here -->
-    </div>
-  </nav>
-
- 
-       
+        <nav>
+            <div id="auth-status">
+                <p>User Status:</p>
+                <!-- User status and logout button will be dynamically inserted here -->
+            </div>
+        </nav>
     </main>
 
     <footer>

@@ -1,13 +1,23 @@
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, deleteDoc, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 import { app } from './js/firebase.js';
 import { showNotification } from './notifications.js';
+
 // Initialize Firebase services using the app instance
 const auth = getAuth(app);
 const firestore = getFirestore(app);
 
 // Get references to the DOM elements
-const wishlistContainer = document.getElementById('wishlist-items');
+const wishlistItemsContainer = document.getElementById('wishlist-items');
+const wishlistIcon = document.getElementById('wishlist-icon');
+
+// Function to update wishlist icon with item count
+const updateWishlistIcon = (count) => {
+    const notification = document.createElement('span');
+    notification.className = 'cart-notification';
+    notification.textContent = count;
+    wishlistIcon.appendChild(notification);
+};
 
 // Function to load wishlist items from Firestore
 const loadWishlistItems = async (user) => {
@@ -15,31 +25,37 @@ const loadWishlistItems = async (user) => {
         showNotification('Please log in to view your wishlist.');
         return;
     }
-
     try {
         const wishlistItemsSnapshot = await getDocs(collection(firestore, `users/${user.uid}/wishlist`));
-        wishlistContainer.innerHTML = ''; // Clear previous items
+        let itemCount = 0;
+        wishlistItemsContainer.innerHTML = '';
 
         if (wishlistItemsSnapshot.empty) {
-            wishlistContainer.innerHTML = '<p>Your wishlist is empty.</p>';
+            wishlistItemsContainer.innerHTML = '<p>Your wishlist is empty.</p>';
+            updateWishlistIcon(0);
             return;
         }
 
         wishlistItemsSnapshot.forEach(doc => {
             const item = doc.data();
+            itemCount += 1;
             const wishlistItemElement = document.createElement('div');
             wishlistItemElement.className = 'wishlist-item';
             wishlistItemElement.innerHTML = `
-                <img src="${item.imageUrl}" alt="${item.name}" class="wishlist-item-image">
+                <img src="${item.imageUrls}" alt="${item.name}" class="wishlist-item-image">
                 <div class="wishlist-item-details">
                     <p><strong>${item.name}</strong></p>
-                    <p>Price: $${item.price.toFixed(2)}</p>
+                    <p>Price: Kes${item.price.toFixed(2)}</p>
                     <button class="remove-button" data-id="${doc.id}">Remove</button>
-                    <button class="add-to-cart-button" data-id="${item.listingId}">Add to Cart</button>
                 </div>
             `;
-            wishlistContainer.appendChild(wishlistItemElement);
+            wishlistItemElement.addEventListener('click', () => {
+                window.location.href = `product.html?id=${item.listingId}`;
+            });
+            wishlistItemsContainer.appendChild(wishlistItemElement);
         });
+
+        updateWishlistIcon(itemCount);
     } catch (error) {
         console.error('Error loading wishlist items:', error);
     }
@@ -58,7 +74,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // Function to remove an item from the wishlist
-wishlistContainer.addEventListener('click', async (event) => {
+wishlistItemsContainer.addEventListener('click', async (event) => {
     if (event.target.classList.contains('remove-button')) {
         const itemId = event.target.getAttribute('data-id');
         const user = auth.currentUser;
@@ -70,9 +86,6 @@ wishlistContainer.addEventListener('click', async (event) => {
                 console.error('Error removing wishlist item:', error);
             }
         }
-    } else if (event.target.classList.contains('add-to-cart-button')) {
-        const listingId = event.target.getAttribute('data-id');
-        await addToCart(listingId);
     }
 });
 
@@ -91,6 +104,7 @@ window.addToWishlist = async function (listingId) {
                 ...listing
             });
             showNotification('Item added to wishlist!');
+            loadWishlistItems(user); // Reload wishlist items after adding new item
         } catch (error) {
             console.error('Error adding item to wishlist:', error);
             showNotification('Failed to add item to wishlist. Please try again.');
@@ -99,27 +113,3 @@ window.addToWishlist = async function (listingId) {
         showNotification('Please log in to add items to the wishlist.');
     }
 };
-
-// Function to add item to cart (you might want to import this from cart.js)
-async function addToCart(listingId) {
-    const user = auth.currentUser;
-    if (user) {
-        const listingRef = doc(firestore, `Listings/${listingId}`);
-        const snapshot = await getDoc(listingRef);
-        const listing = snapshot.data();
-
-        try {
-            await addDoc(collection(firestore, `users/${user.uid}/cart`), {
-                userId: user.uid,
-                listingId: listingId,
-                ...listing
-            });
-            showNotification('Item added to cart!');
-        } catch (error) {
-            console.error('Error adding item to cart:', error);
-            showNotification('Failed to add item to cart. Please try again.');
-        }
-    } else {
-        showNotification('Please log in to add items to the cart.');
-    }
-}

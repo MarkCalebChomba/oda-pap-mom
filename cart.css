@@ -75,8 +75,16 @@ header {
     padding: 2px 6px;
     font-size: 12px;
     position: absolute;
-    top: -5px; /* Adjusted to position on the cart icon */
-    right: -5px; /* Adjusted to position on the cart icon */
+    top: -10px; /* Adjusted to position on the top right */
+    right: -10px; /* Adjusted to position on the top right */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.highlight {
+    background-color: gold !important;
+    transition: background-color 0.5s ease;
 }
 
 main {
