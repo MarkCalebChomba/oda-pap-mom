@@ -640,6 +640,10 @@
         if (file) {
           try {
             const user = auth.currentUser;
+            if (!user) {
+              showNotification("User not authenticated", "error");
+              return;
+            }
             const storageReference = storageRef(storage, `profile-pics/${user.uid}`);
             await uploadBytes(storageReference, file);
             const downloadURL = await getDownloadURL(storageReference);
@@ -829,3 +833,4 @@
     </script>
   </body>
 </html>
+
