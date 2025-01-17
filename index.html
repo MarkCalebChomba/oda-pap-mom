@@ -54,55 +54,55 @@
             <p>Menu</p>
           </div>
           <div class="dropdown-content" id="dropdown">
-            <a href="student-centre.html" class="category">
+            <a href="category.html?category=student-centre" class="category">
               <i class="fas fa-graduation-cap"></i>
               <p>Student Centre</p>
             </a>
-            <a href="electronics.html" class="category">
+            <a href="category.html?category=electronics" class="category">
               <i class="fas fa-tv"></i>
               <p>Electronics</p>
             </a>
-            <a href="kitchenware.html" class="category">
+            <a href="category.html?category=kitchenware" class="category">
               <i class="fas fa-blender"></i>
               <p>Kitchenware</p>
             </a>
-            <a href="furniture.html" class="category">
+            <a href="category.html?category=furniture" class="category">
               <i class="fas fa-couch"></i>
               <p>Furniture</p>
             </a>
-            <a href="fashion.html" class="category">
+            <a href="category.html?category=fashion" class="category">
               <i class="fas fa-tshirt"></i>
               <p>Fashion</p>
             </a>
-            <a href="beauty.html" class="category">
+            <a href="category.html?category=beauty" class="category">
               <i class="fas fa-heart"></i>
               <p>Beauty</p>
             </a>
-            <a href="rentals.html" class="category">
+            <a href="category.html?category=rentals" class="category">
               <i class="fas fa-building"></i>
               <p>Rentals</p>
             </a>
-            <a href="service-men.html" class="category">
+            <a href="category.html?category=service-men" class="category">
               <i class="fas fa-tools"></i>
               <p>Service Men</p>
             </a>
-            <a href="foodstuffs.html" class="category">
+            <a href="category.html?category=foodstuffs" class="category">
               <i class="fas fa-carrot"></i>
               <p>Foodstuffs</p>
             </a>
-            <a href="phones.html" class="category">
+            <a href="category.html?category=phones" class="category">
               <i class="fas fa-mobile-alt"></i>
               <p>Phones</p>
             </a>
-            <a href="accessories.html" class="category">
+            <a href="category.html?category=accessories" class="category">
               <i class="fas fa-headphones"></i>
               <p>Accessories</p>
             </a>
-            <a href="pharmaceutical.html" class="category">
+            <a href="category.html?category=pharmaceutical" class="category">
               <i class="fas fa-pills"></i>
               <p>Pharmaceutical</p>
             </a>
-            <a href="kids.html" class="category">
+            <a href="category.html?category=kids" class="category">
               <i class="fas fa-hat-wizard"></i>
               <p>kids</p>
             </a>
@@ -153,8 +153,9 @@
           <span class="cart-notification"></span>
           <p>WISHLIST</p>
         </button>
-        <button class="home-button" onclick="location.href='profile.html'">
+        <button class="home-button" onclick="location.href='profile.html'" style="position: relative;">
           <i class="fas fa-user-circle"></i>
+          <span id="profile-notification" class="blinking-notification" style="display: none;"></span>
           <p>PROFILE</p>
         </button>
         <!-- -->
@@ -163,7 +164,7 @@
 
     <main>
       
-      <section class="highlights">
+    <section class="highlights">  
         <div class="highlight-item">
           <i class="fas fa-gift"></i>
           <p>Giveaways</p>
@@ -190,41 +191,41 @@
         </div>
       </section>
       <div class="categories-box">
-        <a href="student-centre.html" class="box">
+        <a href="category.html?category=student-centre" class="box">
           <i class="fas fa-graduation-cap"></i>
           <p>Comrade Corner</p>
         </a>
-        <a href="electronics.html" class="box">
+        <a href="category.html?category=electronics" class="box">
           <i class="fas fa-tv"></i>
           <p>Electronics</p>
         </a>
-        <a href="kitchenware.html" class="box">
+        <a href="category.html?category=kitchenware" class="box">
           <i class="fas fa-blender"></i>
           <p>Kitchenware</p>
         </a>
-        <a href="furniture.html" class="box">
+        <a href="category.html?category=furniture" class="box">
           <i class="fas fa-couch"></i>
           <p>Furniture</p>
         </a>
-        <a href="fashion.html" class="box">
+        <a href="category.html?category=fashion" class="box">
           <i class="fas fa-tshirt"></i>
           <p>Fashion</p>
         </a>
-        <a href="beauty.html" class="box">
+        <a href="category.html?category=beauty" class="box">
           <i class="fas fa-heart"></i>
           <p>Beauty</p>
         </a>
-        <a href="rentals.html" class="box">
+        <a href="category.html?category=rentals" class="box">
           <i class="fas fa-building"></i>
           <p>Rentals</p>
         </a>
 
-        <a href="phones.html" class="box">
+        <a href="category.html?category=phones" class="box">
           <i class="fas fa-mobile-alt"></i>
           <p>Phones</p>
         </a>
 
-        <a href="pharmaceutical.html" class="box">
+        <a href="category.html?category=pharmaceutical" class="box">
           <i class="fas fa-pills"></i>
           <p>Pharmaceutical</p>
         </a>
@@ -246,18 +247,12 @@
           <!-- Listings will be dynamically inserted here -->
         </div>
       </section>
-
-     
-
-    
-
-    
     </main>
     <footer>
    <button class="floating-button" onclick="location.href='listing.html'">
   <i class="fas fa-plus"></i>
   <span class="button-text">Sell Now</span>
-  <div class="fire-animation"></div>
+  
 </button>
       
       <p>&copy; 2024 Oda Pap. All Rights Reserved.</p>
@@ -272,5 +267,6 @@
           </ul>
       </div>
   </footer>
+  
   </body>
 </html>

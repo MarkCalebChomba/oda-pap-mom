@@ -1,45 +1,36 @@
 export function showNotification(message, type = 'info') {
-  // Remove existing notification if present
-  const existingNotification = document.querySelector('.notification');
-  if (existingNotification) {
-      existingNotification.remove();
-  }
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-info-circle"></i>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close">&times;</button>
+    `;
 
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  
-  // Create content
-  notification.innerHTML = `
-      <div class="notification-content">
-          <i class="fas ${getIconForType(type)}"></i>
-          <span>${message}</span>
-      </div>
-      <button class="notification-close">
-          <i class="fas fa-times"></i>
-      </button>
-  `;
+    document.body.appendChild(notification);
 
-  // Add to document
-  document.body.appendChild(notification);
+    // Show the notification
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
 
-  // Add show class for animation
-  setTimeout(() => notification.classList.add('show'), 10);
+    // Hide the notification after 5 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 5000);
 
-  // Setup close button
-  const closeButton = notification.querySelector('.notification-close');
-  closeButton.addEventListener('click', () => {
-      notification.classList.remove('show');
-      setTimeout(() => notification.remove(), 300);
-  });
-
-  // Auto close after 5 seconds
-  setTimeout(() => {
-      if (notification.parentElement) {
-          notification.classList.remove('show');
-          setTimeout(() => notification.remove(), 300);
-      }
-  }, 5000);
+    // Close button event
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    });
 }
 
 function getIconForType(type) {

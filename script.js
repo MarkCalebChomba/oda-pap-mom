@@ -1,21 +1,10 @@
-import { logoutUser, onAuthChange } from "./js/auth.js";
-import { app } from "./js/firebase.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-  addDoc,
-  query,
-  where,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { app } from "./js/firebase.js";
+import { logoutUser, onAuthChange } from "./js/auth.js";
 import { initializeImageSliders } from './imageSlider.js';
 import { showLoader, hideLoader } from './loader.js';
-
 import { showNotification } from './notifications.js';
 import { animateButton, animateIconToCart, updateCartCounter, updateWishlistCounter, updateChatCounter } from './js/utils.js';
 
@@ -29,7 +18,6 @@ const profilePic = document.getElementById("profile-pic");
 const userEmail = document.getElementById("user-email");
 const userName = document.getElementById("user-name");
 const userPhone = document.getElementById("user-phone");
-
 
 // Toggle menu dropdown
 export function toggleMenu() {
@@ -81,18 +69,20 @@ onAuthChange(displayAuthStatus);
 // Function to load and display featured listings with gallery dropdown
 // DOM elements remain the same...
 
+
 // Share functionality
 async function shareProduct(listingId, productName, productDescription, imageUrl) {
   try {
+    const shareUrl = `${window.location.origin}/public/product.html?id=${listingId}`;
     if (navigator.share) {
       await navigator.share({
         title: productName,
         text: productDescription,
-        url: `${window.location.origin}/product.html?id=${listingId}`
+        url: shareUrl
       });
     } else {
       // Fallback for browsers that don't support Web Share API
-      const shareUrl = `${window.location.origin}/product.html?id=${listingId}`;
+
       const shareModal = document.createElement('div');
       shareModal.className = 'share-modal';
       shareModal.innerHTML = `
@@ -165,7 +155,8 @@ const loadFeaturedListings = async () => {
         }
       }
 
-      const displayName = userData.name || userData.username || "Unknown User";
+      // Ensure userData is defined before accessing its properties
+      const displayName = userData?.name || userData?.username || "Unknown User";
       const imageUrls = listing.imageUrls || [];
       const firstImageUrl = imageUrls.length > 0 ? imageUrls[0] : "images/product-placeholder.png";
       const sellerId = listing.uploaderId || listing.userId;
@@ -487,10 +478,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Ensure counters are always available
-    if (auth.currentUser) {
-        await updateCartCounter(firestore, auth.currentUser.uid);
-        await updateWishlistCounter(firestore, auth.currentUser.uid);
-        await updateChatCounter(firestore, auth.currentUser.uid);
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            await updateCartCounter(firestore, user.uid);
+            await updateWishlistCounter(firestore, user.uid);
+            await updateChatCounter(firestore, user.uid);
+        }
+    });
+
+    // Check if user profile is set up
+    const user = auth.currentUser;
+    if (user) {
+      const userDoc = await getDoc(doc(firestore, "Users", user.uid));
+      const userData = userDoc.data();
+      if (!userData.name || !userData.phone) {
+        document.getElementById('profile-notification').style.display = 'flex';
+      }
     }
 });
 

@@ -1,6 +1,6 @@
 import { logoutUser, onAuthChange } from "./js/auth.js";
 import { app } from "./js/firebase.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
 import {
   getFirestore,
@@ -9,8 +9,10 @@ import {
   doc,
   getDoc,
   addDoc,
+  updateDoc,
   query,
   where,
+  orderBy,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 import { initializeImageSliders } from './imageSlider.js';
@@ -52,96 +54,129 @@ const errorHandler = {
   }
 };
 
-// Function to load and display filtered listings based on category
-const loadFeaturedListings = async () => {
+// Function to load and display filtered listings based on category and filter criteria
+const loadFeaturedListings = async (filterCriteria = {}) => {
   showLoader();
   try {
-    const listingsSnapshot = await getDocs(collection(firestore, "Listings"));
     const listingsContainer = document.querySelector(".listings-container");
-    const category = listingsContainer.dataset.category;
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('category'); // Extract category from URL parameters
+    if (!category) {
+      throw new Error("Category is not defined");
+    }
+    listingsContainer.dataset.category = category; // Set category to dataset
     listingsContainer.innerHTML = "";
 
-    for (const listingDoc of listingsSnapshot.docs) {
-      const listing = listingDoc.data();
-      if (listing.category === category) {
-        const uploaderId = listing.uploaderId || listing.userId;
-        let userData = {};
+    // Update category title and description
+    const categoryTitle = document.getElementById('category-title');
+    const categoryDescription = document.getElementById('category-description');
+    categoryTitle.textContent = category.replace(/-/g, ' ').toUpperCase();
+    categoryDescription.textContent = `Browse the best deals and offers in the ${category.replace(/-/g, ' ')} category.`;
 
-        if (uploaderId) {
-          try {
-            const userDoc = await getDoc(doc(firestore, "Users", uploaderId));
-            if (userDoc.exists()) {
-              userData = userDoc.data();
-            }
-          } catch (error) {
-            console.error(`Error fetching user data:`, error);
-            showNotification('Failed to load listings. Please refresh the page.', 'error');
-          } finally {
-            hideLoader();
-          }
+    const listingsSnapshot = await getDocs(collection(firestore, "Listings"));
+    const listings = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Filter listings based on category
+    let filteredListings = listings.filter(listing => listing.category === category);
+
+    // Apply filter criteria locally
+    if (filterCriteria.orderBy) {
+      filteredListings.sort((a, b) => {
+        if (filterCriteria.orderDirection === 'desc') {
+          return b[filterCriteria.orderBy] - a[filterCriteria.orderBy];
         }
+        return a[filterCriteria.orderBy] - b[filterCriteria.orderBy];
+      });
+    }
+    if (filterCriteria.priceRange) {
+      const [minPrice, maxPrice] = filterCriteria.priceRange.split('-').map(Number);
+      filteredListings = filteredListings.filter(listing => listing.price >= minPrice && listing.price <= maxPrice);
+    }
 
-        const displayName = userData.name || userData.username || "Unknown User";
-        const imageUrls = listing.imageUrls || [];
-        const firstImageUrl = imageUrls.length > 0 ? imageUrls[0] : "images/product-placeholder.png";
-        const sellerId = listing.uploaderId || listing.userId;
+    if (filteredListings.length === 0) {
+      listingsContainer.innerHTML = "<p>No listings found in this category.</p>";
+      hideLoader();
+      return;
+    }
 
-        const listingElement = document.createElement("div");
-        listingElement.className = "listing-item";
-        listingElement.innerHTML = `
-          <div class="product-item">
-            <div class="profile">
-              <img src="${userData.profilePicUrl || "images/profile-placeholder.png"}" alt="${displayName}" onclick="goToUserProfile('${uploaderId}')">
-              <div>
-                <p><strong>${displayName}</strong></p>
-                <p>${listing.name}</p>
-              </div>
-              <div class="product-actions">
-                <div>
-                  <i class="fas fa-comments" onclick="goToChat('${sellerId}', '${listingDoc.id}')"></i>
-                  <small> Message </small>
-                </div>
-                <div>
-                  <i class="fas fa-share" onclick="shareProduct('${listingDoc.id}', '${listing.name}', '${listing.description}', '${firstImageUrl}')"></i>
-                  <small> Share </small>
-                </div>
-              </div>
+    for (const listing of filteredListings) {
+      const uploaderId = listing.uploaderId || listing.userId;
+      let userData = {};
+
+      if (uploaderId) {
+        try {
+          const userDoc = await getDoc(doc(firestore, "Users", uploaderId));
+          if (userDoc.exists()) {
+            userData = userDoc.data();
+          }
+        } catch (error) {
+          console.error(`Error fetching user data:`, error);
+          showNotification('Failed to load listings. Please refresh the page.', 'error');
+        } finally {
+          hideLoader();
+        }
+      }
+
+      const displayName = userData.name || userData.username || "Unknown User";
+      const imageUrls = listing.imageUrls || [];
+      const firstImageUrl = imageUrls.length > 0 ? imageUrls[0] : "images/product-placeholder.png";
+      const sellerId = listing.uploaderId || listing.userId;
+
+      const listingElement = document.createElement("div");
+      listingElement.className = "listing-item";
+      listingElement.innerHTML = `
+        <div class="product-item">
+          <div class="profile">
+            <img src="${userData.profilePicUrl || "images/profile-placeholder.png"}" alt="${displayName}" onclick="goToUserProfile('${uploaderId}')">
+            <div>
+              <p><strong>${displayName}</strong></p>
+              <p>${listing.name}</p>
             </div>
-            <div class="product-image-container" onclick="goToProduct('${listingDoc.id}')">
-              <div class="image-slider">
-                ${imageUrls.map(url => `
-                  <img src="${url}" alt="Product Image" class="product-image">
-                `).join('')}
-                <div class="product-tags">
-                  ${listing.condition ? `<span class="product-condition">${listing.condition}</span>` : ''}
-                  ${listing.age ? `<span class="product-age">${listing.age} </span>` : ''}
-                </div>
-              </div>
-            </div>
-            <p class="product-price">
-              <strong>KES ${listing.price}</strong>
-              <span class="initial-price">${listing.initialPrice ? `<s>KES ${listing.initialPrice}</s>` : ''}</span>
-            </p>
-            <p class="product-description">${listing.description ? listing.description : ''}</p>
             <div class="product-actions">
               <div>
-                <i class="fas fa-cart-plus add-to-cart-btn" data-listing-id="${listingDoc.id}" onclick="addToCart('${listingDoc.id}')"></i>
-                <p>Cart</p>
+                <i class="fas fa-comments" onclick="goToChat('${sellerId}', '${listing.id}')"></i>
+                <small> Message </small>
               </div>
               <div>
-                <i class="fas fa-bolt buy-now-btn" data-listing-id="${listingDoc.id}" onclick="buyNow('${listingDoc.id}')"></i>
-                <p>Buy Now</p>
-              </div>
-              <div>
-                <i class="fas fa-heart wishlist-btn" data-listing-id="${listingDoc.id}" onclick="addToWishlist('${listingDoc.id}')"></i>
-                <p>Wishlist</p>
+                <i class="fas fa-share" onclick="shareProduct('${listing.id}', '${listing.name}', '${listing.description}', '${firstImageUrl}')"></i>
+                <small> Share </small>
               </div>
             </div>
           </div>
-        `;
+          <div class="product-image-container" onclick="goToProduct('${listing.id}')">
+            <div class="image-slider">
+              ${imageUrls.map(url => `
+                <img src="${url}" alt="Product Image" class="product-image">
+              `).join('')}
+              <div class="product-tags">
+                ${listing.condition ? `<span class="product-condition">${listing.condition}</span>` : ''}
+                ${listing.age ? `<span class="product-age">${listing.age} </span>` : ''}
+              </div>
+            </div>
+          </div>
+          <p class="product-price">
+            <strong>KES ${listing.price}</strong>
+            <span class="initial-price">${listing.initialPrice ? `<s>KES ${listing.initialPrice}</s>` : ''}</span>
+          </p>
+          <p class="product-description">${listing.description ? listing.description : ''}</p>
+          <div class="product-actions">
+            <div>
+              <i class="fas fa-cart-plus add-to-cart-btn" data-listing-id="${listing.id}" onclick="addToCart('${listing.id}')"></i>
+              <p>Cart</p>
+            </div>
+            <div>
+              <i class="fas fa-bolt buy-now-btn" data-listing-id="${listing.id}" onclick="buyNow('${listing.id}')"></i>
+              <p>Buy Now</p>
+            </div>
+            <div>
+              <i class="fas fa-heart wishlist-btn" data-listing-id="${listing.id}" onclick="addToWishlist('${listing.id}')"></i>
+              <p>Wishlist</p>
+            </div>
+          </div>
+        </div>
+      `;
 
-        listingsContainer.appendChild(listingElement);
-      }
+      listingsContainer.appendChild(listingElement);
     }
 
     // Initialize image sliders after content is loaded
@@ -149,6 +184,8 @@ const loadFeaturedListings = async () => {
 
   } catch (error) {
     console.error("Error loading featured listings:", error);
+    showNotification("Failed to load listings. Please try again later.", "error");
+    hideLoader();
   }
 };
 
@@ -265,6 +302,29 @@ window.goToUserProfile = function(userId) {
   window.location.href = `user.html?userId=${userId}`;
 };
 
+// Function to share product
+window.shareProduct = function (listingId, name, description, imageUrl) {
+  const productUrl = `${window.location.origin}/public/product.html?id=${listingId}`;
+  if (navigator.share) {
+    navigator.share({
+      title: name,
+      text: description,
+      url: productUrl,
+    }).then(() => {
+      console.log('Thanks for sharing!');
+    }).catch(console.error);
+  } else {
+    // Fallback for browsers that do not support the Web Share API
+    const tempInput = document.createElement('input');
+    document.body.appendChild(tempInput);
+    tempInput.value = productUrl;
+    tempInput.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempInput);
+    showNotification('Product link copied to clipboard!');
+  }
+};
+
 // Search functionality
 const searchForm = document.getElementById('searchForm');
 const searchInput = document.getElementById('searchInput');
@@ -364,4 +424,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateWishlistCounter(firestore, auth.currentUser.uid);
     await updateChatCounter(firestore, auth.currentUser.uid);
   }
+
+  // Check if user profile is set up
+  const user = auth.currentUser;
+  if (user) {
+    const userDoc = await getDoc(doc(firestore, "Users", user.uid));
+    const userData = userDoc.data();
+    if (!userData.name || !userData.phone) {
+      document.getElementById('profile-notification').style.display = 'flex';
+    }
+  }
 });
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const userDoc = await getDoc(doc(firestore, "Users", user.uid));
+    const userData = userDoc.data();
+    if (!userData.name || !userData.phone) {
+      document.getElementById('profile-notification').style.display = 'flex';
+    }
+  }
+});
+
+// Add filter functionality
+const filterForm = document.getElementById('filterForm');
+const filterToggleButton = document.getElementById('filterToggleButton');
+
+if (filterToggleButton) {
+  filterToggleButton.addEventListener('click', () => {
+    filterForm.style.display = filterForm.style.display === 'none' ? 'block' : 'none';
+  });
+}
+
+filterForm.addEventListener('change', async (e) => {
+  e.preventDefault();
+  const orderBy = document.querySelector('input[name="orderBy"]:checked').value;
+  const orderDirection = document.querySelector('input[name="orderDirection"]:checked').value;
+  const priceRange = document.getElementById('priceRange').value;
+  await loadFeaturedListings({ orderBy, orderDirection, priceRange });
+});
+
+

@@ -125,7 +125,6 @@ select, input, textarea {
     margin: 0.5rem 0;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 1rem;
 }
 
 /* Edit Containers */
@@ -161,7 +160,6 @@ select, input, textarea {
     margin: 1rem 0;
     border: 1px solid var(--primary-light);
 }
-
 
 /* Save Info Button */
 #save-info-button {
@@ -250,4 +248,30 @@ socials a {
     .home-button {
         font-size: 1rem;
     }
+}
+
+/* Arrange buttons in a block format */
+.profile-details button {
+    display: block;
+    width: auto; /* Prevent buttons from stretching */
+    margin: 0.5rem auto; /* Center the buttons */
+    padding: 0.2rem 0.4rem; /* Make buttons smaller */
+}
+
+#edit-profile-button {
+    margin-top: 1rem; /* Position just below the profile picture */
+}
+
+#change-pic-button {
+    display: block;
+    width: auto;
+    margin: 0.5rem auto; /* Center the Change Picture button */
+    padding: 0.2rem 0.4rem;
+}
+
+.profile-details button:not(#change-pic-button) {
+    display: block;
+    width: auto;
+    margin: 0.5rem 0; /* Align other buttons to the left edge */
+    padding: 0.2rem 0.4rem;
 }

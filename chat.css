@@ -214,3 +214,44 @@ main {
   font-weight: bold;
   margin-bottom: 5px;
 }
+
+.report-button {
+  background-color: #ff5722;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+  position: absolute; /* Changed to absolute */
+  right: 20px; /* Positioned on the right-hand side */
+  z-index: 1000;
+}
+
+.report-button:hover {
+  background-color: #e64a19;
+}
+
+.report-dropdown {
+  display: none;
+  position: absolute;
+  right: 20px; /* Positioned on the right-hand side */
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  z-index: 1000;
+  padding: 10px;
+}
+
+.report-dropdown.show {
+  display: block;
+}
+
+.report-dropdown select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}

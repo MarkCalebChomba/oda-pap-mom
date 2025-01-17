@@ -42,15 +42,17 @@ const loadWishlistItems = async (user) => {
             const wishlistItemElement = document.createElement('div');
             wishlistItemElement.className = 'wishlist-item';
             wishlistItemElement.innerHTML = `
-                <img src="${item.imageUrls}" alt="${item.name}" class="wishlist-item-image">
+                <img src="${item.imageUrls[0]}" alt="${item.name}" class="wishlist-item-image">
                 <div class="wishlist-item-details">
                     <p><strong>${item.name}</strong></p>
                     <p>Price: Kes${item.price.toFixed(2)}</p>
                     <button class="remove-button" data-id="${doc.id}">Remove</button>
                 </div>
             `;
-            wishlistItemElement.addEventListener('click', () => {
-                window.location.href = `product.html?id=${item.listingId}`;
+            wishlistItemElement.addEventListener('click', (event) => {
+                if (!event.target.classList.contains('remove-button')) {
+                    window.location.href = `product.html?id=${item.listingId}`;
+                }
             });
             wishlistItemsContainer.appendChild(wishlistItemElement);
         });

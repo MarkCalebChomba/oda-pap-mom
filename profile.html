@@ -24,8 +24,9 @@
         <button class="home-button" onclick="location.href='cart.html'">
           <i class="fas fa-shopping-cart" id="cart-icon"></i>
         </button>
-        <button class="home-button" onclick="location.href='profile.html'">
+        <button class="home-button" onclick="location.href='profile.html'" style="position: relative;">
           <i class="fas fa-user-circle"></i>
+          <span id="profile-notification" class="blinking-notification" style="display: none;"></span>
         </button>
       </div>
     </header>
@@ -84,9 +85,10 @@
             <span><strong>Constituency:</strong> <span id="user-constituency"></span></span><br />
             <span><strong>Ward:</strong> <span id="user-ward"></span></span><br />
             <span><strong>Specific Location:</strong> <span id="user-specific-location"></span></span>
+            <button id="edit-location-button" onclick="showEditLocation()">Edit Location</button>
           </p>
           
-
+<div class = "location-selection" id="location-selection" style="display: none;">
           <label for="region-select">Region:</label>
           <select id="region-select">
             <option value="" disabled selected>Select Region</option>
@@ -128,7 +130,7 @@
           
         </div>
       </div>
-
+    </div>
       <section class="account-balance">
         <h3>Account Balance</h3>
         <p>KES<span id="account-balance">XXXX</span></p>
@@ -238,7 +240,10 @@
         userSpecificLocation: document.getElementById('user-specific-location'),
         userConstituency: document.getElementById('user-constituency'), // Add this line
         accountBalance: document.getElementById('account-balance'),
-        toggleBalance: document.getElementById('toggle-balance')
+        toggleBalance: document.getElementById('toggle-balance'),
+        profileNotification: document.getElementById('profile-notification'),
+        editLocationButton: document.getElementById('edit-location-button'),
+        locationSelection: document.getElementById('location-selection')
       };
 
       // Location data
@@ -725,10 +730,15 @@
         try {
           await updateDoc(doc(db, "Users", auth.currentUser.uid), locationData);
           updateLocationDisplay(locationData);
+          elements.locationSelection.style.display = 'none';
           showNotification("Location updated successfully!");
         } catch (error) {
           showNotification("Failed to update location", "error");
         }
+      });
+
+      elements.editLocationButton.addEventListener('click', () => {
+        elements.locationSelection.style.display = 'block';
       });
 
       // Helper Functions
@@ -811,6 +821,9 @@
           elements.userName.textContent = userData.name || "Not Set";
           elements.userPhone.textContent = userData.phone || "Not Set";
           updateLocationDisplay(userData);
+          if (!userData.name || !userData.phone) {
+            elements.profileNotification.style.display = 'flex';
+          }
         }
       });
     </script>

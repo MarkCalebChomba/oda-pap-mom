@@ -18,9 +18,6 @@
         <div class="border-line"></div>
         <div class="nav-bar" id="nav-bar">
             <button class="home-button" onclick="location.href='index.html'"><i class="fas fa-home"></i></button>
-            <button class="home-button" onclick="location.href='electronics.html'"><i class="fas fa-laptop"></i></button>
-            <button class="home-button" onclick="location.href='fashion.html'"><i class="fas fa-tshirt"></i></button>
-            <button class="home-button" onclick="location.href='furniture.html'"><i class="fas fa-couch"></i></button>
             <button class="home-button" onclick="location.href='notification.html'"><i class="fas fa-bell" id="notification-icon"></i></button>
             <button class="home-button" onclick="location.href='cart.html'"><i class="fas fa-shopping-cart"></i></button>
             <button class="home-button" onclick="location.href='profile.html'"><i class="fas fa-user-circle"></i></button>
@@ -29,10 +26,6 @@
     <main>
         <div id="chat-container" class="chat-container">
             <!-- Chat messages will be dynamically added here -->
-        </div>
-        <div class="chat-input-container">
-            <input type="text" id="chat-input" placeholder="Type a message...">
-            <button class="send-button" onclick="sendMessage()">Send</button>
         </div>
     </main>
     <div class="notification-container">
@@ -43,6 +36,12 @@
             <!-- Chat items will be dynamically populated here -->
         </ul>
     </div>
+    <footer>
+        <button class="floating-button" onclick="location.href='customercare.html'">
+            <i class="fas fa-headset"></i>
+            <span class="button-text">Customer Care</span>
+        </button>
+    </footer>
     <script type="module">
         import { app } from "./js/firebase.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";

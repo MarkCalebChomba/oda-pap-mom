@@ -3,6 +3,7 @@ import { app } from './js/firebase.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js';
 import { getFirestore, collection, addDoc, query, where, onSnapshot, serverTimestamp, orderBy, getDoc, doc } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js';
+import { showNotification } from './notifications.js'; // Ensure this import is correct
 
 const auth = getAuth(app);
 const firestore = getFirestore(app);
@@ -13,10 +14,12 @@ const chatInput = document.getElementById('chat-input');
 const fileInput = document.getElementById('file-input');
 const sendButton = document.getElementById('send-button');
 const sendFileButton = document.getElementById('send-file-button');
+const reportButton = document.getElementById('report-button');
+const reportDropdown = document.getElementById('report-dropdown');
 
 let chatHeaderDisplayed = false; // Track if chat header is already displayed
 
-// Function to send a message
+// Function to send a message without reloading the page
 async function sendMessage() {
     const messageText = chatInput.value;
     if (messageText.trim() === '') return;
@@ -32,38 +35,56 @@ async function sendMessage() {
     const sellerId = getSellerId(); // Function to retrieve seller ID
     const listingId = getListingId(); // Function to retrieve listing ID
 
+    // Log values for debugging
+    console.log('chatId:', chatId);
+    console.log('sellerId:', sellerId);
+    console.log('listingId:', listingId);
+
+    if (!chatId || !sellerId) {
+        alert('Chat ID or Seller ID is missing.');
+        return;
+    }
+
     // Show loading spinner
     sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-    const userDoc = await getDoc(doc(firestore, "Users", user.uid));
-    const userName = userDoc.exists() ? userDoc.data().name : user.displayName || 'Anonymous';
+    try {
+        const userDoc = await getDoc(doc(firestore, "Users", user.uid));
+        const userName = userDoc.exists() ? userDoc.data().name : user.displayName || 'Anonymous';
 
-    const messageData = {
-        chatId,
-        buyerId,
-        sellerId,
-        senderId: user.uid,
-        senderName: userName, // Use the fetched user name
-        message: messageText,
-        timestamp: serverTimestamp(),
-    };
+        const messageData = {
+            chatId,
+            buyerId,
+            sellerId,
+            senderId: user.uid,
+            senderName: userName, // Use the fetched user name
+            message: messageText,
+            timestamp: serverTimestamp(),
+        };
 
-    const listingDoc = await getDoc(doc(firestore, "Listings", listingId));
-    if (listingDoc.exists()) {
-        const listing = listingDoc.data();
-        const imageUrl = listing.imageUrls ? listing.imageUrls[0] : 'images/product-placeholder.png';
-        messageData.fileUrl = imageUrl;
-        messageData.fileType = 'image/jpeg';
-        messageData.listingId = listingId; // Include listing ID in the message data
+        if (listingId) {
+            const listingDoc = await getDoc(doc(firestore, "Listings", listingId));
+            if (listingDoc.exists()) {
+                const listing = listingDoc.data();
+                const imageUrl = listing.imageUrls ? listing.imageUrls[0] : 'images/product-placeholder.png';
+                messageData.fileUrl = imageUrl;
+                messageData.fileType = 'image/jpeg';
+                messageData.listingId = listingId; // Include listing ID in the message data
+            }
+        }
+
+        await addDoc(collection(firestore, 'Messages'), messageData);
+
+        chatInput.value = ''; // Clear the input field
+        document.getElementById('attached-image').style.display = 'none'; // Hide the attached image
+
+        // Hide loading spinner
+        sendButton.innerHTML = 'Send';
+    } catch (error) {
+        console.error("Error sending message:", error);
+        alert("Failed to send message. Please check your permissions.");
+        sendButton.innerHTML = 'Send';
     }
-
-    await addDoc(collection(firestore, 'Messages'), messageData);
-
-    chatInput.value = ''; // Clear the input field
-    document.getElementById('attached-image').style.display = 'none'; // Hide the attached image
-
-    // Hide loading spinner
-    sendButton.innerHTML = 'Send';
 }
 
 // Function to send a file
@@ -81,32 +102,90 @@ async function sendFile(file) {
     // Show loading spinner
     sendFileButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-    const fileRef = ref(storage, `chat_files/${chatId}/${file.name}`);
-    await uploadBytes(fileRef, file);
-    const fileUrl = await getDownloadURL(fileRef);
+    try {
+        const fileRef = ref(storage, `chat_files/${chatId}/${file.name}`);
+        await uploadBytes(fileRef, file);
+        const fileUrl = await getDownloadURL(fileRef);
 
-    const userDoc = await getDoc(doc(firestore, "Users", user.uid));
-    const userName = userDoc.exists() ? userDoc.data().name : user.displayName || 'Anonymous';
+        const userDoc = await getDoc(doc(firestore, "Users", user.uid));
+        const userName = userDoc.exists() ? userDoc.data().name : user.displayName || 'Anonymous';
 
-    await addDoc(collection(firestore, 'Messages'), {
+        await addDoc(collection(firestore, 'Messages'), {
+            chatId,
+            buyerId,
+            sellerId,
+            senderId: user.uid,
+            senderName: userName, // Use the fetched user name
+            fileUrl,
+            fileType: file.type,
+            timestamp: serverTimestamp(),
+        });
+
+        // Hide loading spinner
+        sendFileButton.innerHTML = '<i class="fas fa-paperclip"></i>';
+    } catch (error) {
+        console.error("Error sending file:", error);
+        alert("Failed to send file. Please check your permissions.");
+        sendFileButton.innerHTML = '<i class="fas fa-paperclip"></i>';
+    }
+}
+
+// Function to report an issue
+async function reportIssue(issue) {
+    const user = auth.currentUser;
+    if (!user) {
+        alert('You must be logged in to report an issue.');
+        return;
+    }
+
+    const chatId = getChatId();
+    const buyerId = user.uid;
+    const sellerId = getSellerId();
+
+    if (!chatId || !sellerId) {
+        alert('Chat ID or Seller ID is missing.');
+        return;
+    }
+
+    const reportData = {
         chatId,
         buyerId,
         sellerId,
-        senderId: user.uid,
-        senderName: userName, // Use the fetched user name
-        fileUrl,
-        fileType: file.type,
+        reporterId: user.uid,
+        issue,
         timestamp: serverTimestamp(),
-    });
+    };
 
-    // Hide loading spinner
-    sendFileButton.innerHTML = '<i class="fas fa-paperclip"></i>';
+    try {
+        console.log("Attempting to report issue:", reportData);
+        await addDoc(collection(firestore, 'Reports'), reportData);
+        console.log("Issue reported successfully.");
+        showNotification('Issue reported successfully.');
+    } catch (error) {
+        console.error("Error reporting issue:", error); // IMPORTANT: Log the full error object
+        console.error("Error code:", error.code);        // Log the error code specifically
+        console.error("Error message:", error.message);  // Log the error message specifically
+        alert("Failed to report issue. Please check your permissions.");
+    }
 }
+
+reportButton.addEventListener('click', () => {
+    reportDropdown.classList.toggle('show');
+});
+
+reportDropdown.addEventListener('change', (event) => {
+    const issue = event.target.value;
+    if (issue) {
+        reportIssue(issue);
+        reportDropdown.classList.remove('show');
+    }
+});
 
 sendButton.addEventListener('click', sendMessage);
 
 chatInput.addEventListener('keypress', (event) => {
     if (event.key === 'Enter') {
+        event.preventDefault(); // Prevent form submission
         sendMessage();
     }
 });
@@ -124,12 +203,9 @@ fileInput.addEventListener('change', (event) => {
 
 // Function to load chat messages
 function loadChatMessages(chatId) {
-    // Ensure the required Firestore index is created:
-    // https://console.firebase.google.com/v1/r/project/oda-pap-46469/firestore/indexes?create_composite=Ck5wcm9qZWN0cy9vZGEtcGFwLTQ2NDY5L2RhdGFiYXNlcy8oZGVmYXVsdCkvY29sbGVjdGlvbkdyb3Vwcy9NZXNzYWdlcy9pbmRleGVzL18QARoKCgZjaGF0SWQQARoNCgl0aW1lc3RhbXAQARoMCghfX25hbWVfXxAB
     const messagesQuery = query(
         collection(firestore, 'Messages'),
-        where('chatId', '==', chatId),
-        orderBy('timestamp') // Order messages by timestamp
+        where('chatId', '==', chatId)
     );
 
     onSnapshot(messagesQuery, async (snapshot) => {
@@ -139,8 +215,10 @@ function loadChatMessages(chatId) {
             messages.push(doc.data());
         });
 
+        // Sort messages by timestamp locally
+        messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
         // Display messages in order
-        messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0)); // Sort messages by timestamp
         messages.forEach((messageData) => {
             displayMessage(messageData);
         });
