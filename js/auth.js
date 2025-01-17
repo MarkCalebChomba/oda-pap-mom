@@ -1,5 +1,8 @@
 import { auth } from './firebase.js';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+const firestore = getFirestore();
 
 // Function to log in a user
 export const loginUser = async (email, password) => {
@@ -13,11 +16,20 @@ export const loginUser = async (email, password) => {
   }
 };
 // Function to sign up a new user
-const signUpUser = async (email, password) => {
+const signUpUser = async (email, phone, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    console.log('User signed up:', userCredential.user);
-    return userCredential.user;
+    const user = userCredential.user;
+
+    // Store additional user information in Firestore
+    await setDoc(doc(firestore, "Users", user.uid), {
+      email: user.email,
+      phone: phone,
+      name: "",
+      profilePicUrl: "images/profile-placeholder.png"
+    });
+
+    return user;
   } catch (error) {
     console.error('Error signing up:', error);
     throw error;
