@@ -1,6 +1,13 @@
 import { auth } from './firebase.js';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 const firestore = getFirestore();
 
@@ -12,9 +19,10 @@ export const loginUser = async (email, password) => {
     return userCredential;
   } catch (error) {
     console.error("Login error:", error.message);
-    throw error; // Re-throw the error for the caller to handle
+    throw error;
   }
 };
+
 // Function to sign up a new user
 const signUpUser = async (email, phone, password) => {
   try {
@@ -36,6 +44,42 @@ const signUpUser = async (email, phone, password) => {
   }
 };
 
+// Function to sign in with Google
+export const signInWithGoogle = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    
+    // Check if user already exists in Firestore
+    const userDoc = await getDoc(doc(firestore, "Users", user.uid));
+    
+    if (!userDoc.exists()) {
+      // New user - create minimal profile, they'll complete it later
+      await setDoc(doc(firestore, "Users", user.uid), {
+        email: user.email,
+        phone: "",
+        name: user.displayName || "",
+        profilePicUrl: user.photoURL || "images/profile-placeholder.png"
+      });
+      
+      return {
+        user: user,
+        isNewUser: true
+      };
+    } else {
+      // Existing user
+      return {
+        user: user,
+        isNewUser: false
+      };
+    }
+  } catch (error) {
+    console.error('Error signing in with Google:', error);
+    throw error;
+  }
+};
+
 // Function to log out a user
 const logoutUser = async () => {
   try {
@@ -53,4 +97,4 @@ const onAuthChange = (callback) => {
 };
 
 // Export the functions to use them in other files
-export {  signUpUser, logoutUser, onAuthChange };
+export { signUpUser, logoutUser, onAuthChange };
