@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile - Oda-Pap</title>
+    <style>
+        /* Carrot Orange Theme */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff7e6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .profile-container {
+            background-color: #ffa500; /* Carrot Orange */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h2 {
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #ffffff;
+            font-size: 14px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .profile-container input[type="text"],
+        .profile-container input[type="tel"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #e6e6e6;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .profile-container input[type="text"]:focus,
+        .profile-container input[type="tel"]:focus {
+            outline: none;
+            border-color: #ff751a;
+        }
+
+        .complete-button {
+            background-color: #ff751a; /* Darker carrot orange */
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .complete-button:hover {
+            background-color: #e65c00;
+        }
+
+        .complete-button:disabled {
+            background-color: #ffb366;
+            cursor: not-allowed;
+        }
+
+        .user-info {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .error-message {
+            color: #ffcccc;
+            background-color: rgba(255, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h2>Complete Your Profile</h2>
+        <p class="subtitle">Just a couple more details to get started</p>
+        
+        <div class="user-info" id="user-info">
+            Signed in as: <span id="user-email"></span>
+        </div>
+        
+        <div class="error-message" id="error-message"></div>
+        
+        <form id="profile-form">
+            <input 
+                type="text" 
+                id="name-input" 
+                placeholder="Full Name" 
+                required
+            >
+            <input 
+                type="tel" 
+                id="phone-input" 
+                placeholder="Phone Number" 
+                required
+                pattern="[0-9+\-\s()]+"
+            >
+            <button type="submit" id="complete-button" class="complete-button">
+                Complete Profile
+            </button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { auth } from './js/firebase.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getFirestore, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        const firestore = getFirestore();
+        const profileForm = document.getElementById('profile-form');
+        const nameInput = document.getElementById('name-input');
+        const phoneInput = document.getElementById('phone-input');
+        const userEmailSpan = document.getElementById('user-email');
+        const errorMessage = document.getElementById('error-message');
+        const completeButton = document.getElementById('complete-button');
+
+        // Check if user is authenticated
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                // Not logged in, redirect to login
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display user email
+            userEmailSpan.textContent = user.email;
+
+            // Pre-fill name if available from Google
+            if (user.displayName) {
+                nameInput.value = user.displayName;
+            }
+
+            // Check if profile is already complete
+            try {
+                const userDoc = await getDoc(doc(firestore, "Users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (userData.phone && userData.phone !== "") {
+                        // Profile already complete, redirect to index
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    // Pre-fill existing data
+                    if (userData.name) nameInput.value = userData.name;
+                    if (userData.phone) phoneInput.value = userData.phone;
+                }
+            } catch (error) {
+                console.error('Error checking profile:', error);
+            }
+        });
+
+        // Handle form submission
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+
+            if (!name || !phone) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            // Disable button during submission
+            completeButton.disabled = true;
+            completeButton.textContent = 'Saving...';
+
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    throw new Error('No user logged in');
+                }
+
+                // Update user profile in Firestore
+                await updateDoc(doc(firestore, "Users", user.uid), {
+                    name: name,
+                    phone: phone
+                });
+
+                // Success - redirect to index
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showError('Failed to save profile. Please try again.');
+                completeButton.disabled = false;
+                completeButton.textContent = 'Complete Profile';
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
